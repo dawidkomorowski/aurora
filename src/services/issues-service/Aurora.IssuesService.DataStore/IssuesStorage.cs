@@ -9,6 +9,7 @@ namespace Aurora.IssuesService.DataStore;
 public sealed class IssuesStorage
 {
     private readonly string _filePath;
+    private readonly object _lock = new();
 
     public IssuesStorage(string filePath)
     {
@@ -27,33 +28,86 @@ public sealed class IssuesStorage
 
     public IssueReadDto CreateIssue(IssueCreateDto issueCreateDto)
     {
-        var issuesDatabase = ReadDatabaseFile();
-
-        var utcNow = DateTime.UtcNow;
-        var nextId = issuesDatabase.Issues.Count != 0 ? issuesDatabase.Issues.Max(i => i.Id) + 1 : 1;
-
-        var newIssue = new DbIssue
+        lock (_lock)
         {
-            Id = nextId,
-            Title = issueCreateDto.Title,
-            Description = issueCreateDto.Description,
-            Status = issueCreateDto.Status,
-            CreatedDateTime = utcNow,
-            UpdatedDateTime = utcNow
-        };
+            var issuesDatabase = ReadDatabaseFile();
 
-        issuesDatabase.Issues.Add(newIssue);
+            var utcNow = DateTime.UtcNow;
+            var nextId = issuesDatabase.Issues.Count != 0 ? issuesDatabase.Issues.Max(i => i.Id) + 1 : 1;
 
-        WriteDatabaseFile(issuesDatabase);
+            var newIssue = new DbIssue
+            {
+                Id = nextId,
+                Title = issueCreateDto.Title,
+                Description = issueCreateDto.Description,
+                Status = issueCreateDto.Status,
+                CreatedDateTime = utcNow,
+                UpdatedDateTime = utcNow
+            };
 
-        return newIssue.ToReadDto();
+            issuesDatabase.Issues.Add(newIssue);
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return newIssue.ToReadDto();
+        }
     }
 
     public IReadOnlyCollection<IssueReadDto> GetAllIssues()
     {
-        var issuesDatabase = ReadDatabaseFile();
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.Issues.Select(i => i.ToReadDto()).ToArray();
+        }
+    }
 
-        return issuesDatabase.Issues.Select(i => i.ToReadDto()).ToArray();
+    public IssueReadDto GetIssue(int id)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new InvalidOperationException("Issue not found.");
+        }
+    }
+
+    public IssueReadDto UpdateIssue(int id, IssueUpdateDto issueUpdateDto)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var issueToUpdate = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new InvalidOperationException("Issue not found.");
+            var index = issuesDatabase.Issues.IndexOf(issueToUpdate);
+
+            var utcNow = DateTime.UtcNow;
+
+            issueToUpdate = new DbIssue
+            {
+                Id = issueToUpdate.Id,
+                Title = issueUpdateDto.Title,
+                Description = issueUpdateDto.Description,
+                Status = issueUpdateDto.Status,
+                CreatedDateTime = issueToUpdate.CreatedDateTime,
+                UpdatedDateTime = utcNow
+            };
+
+            issuesDatabase.Issues[index] = issueToUpdate;
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return issueToUpdate.ToReadDto();
+        }
+    }
+
+    public void DeleteIssue(int id)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var issueToDelete = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new InvalidOperationException("Issue not found.");
+            issuesDatabase.Issues.Remove(issueToDelete);
+            WriteDatabaseFile(issuesDatabase);
+        }
     }
 
     private IssuesDatabase ReadDatabaseFile()
@@ -93,21 +147,4 @@ public sealed class IssuesStorage
             UpdatedDateTime = UpdatedDateTime
         };
     }
-}
-
-public sealed record IssueCreateDto
-{
-    public required string Title { get; init; }
-    public required string Description { get; init; }
-    public required string Status { get; init; }
-}
-
-public sealed record IssueReadDto
-{
-    public required int Id { get; init; }
-    public required string Title { get; init; }
-    public required string Description { get; init; }
-    public required string Status { get; init; }
-    public required DateTime CreatedDateTime { get; init; }
-    public required DateTime UpdatedDateTime { get; init; }
 }

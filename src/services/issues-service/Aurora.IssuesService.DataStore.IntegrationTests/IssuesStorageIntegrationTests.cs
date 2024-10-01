@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Aurora.IssuesService.DataStore.IntegrationTests;
 
@@ -38,7 +39,7 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void Create_ShouldCreateNewIssue()
+    public void CreateIssue_ShouldCreateNewIssue()
     {
         // Arrange
         var startTime = DateTime.UtcNow;
@@ -73,7 +74,7 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void Create_ShouldCreateMultipleIssues_WhenCalledMultipleTimes()
+    public void CreateIssue_ShouldCreateMultipleIssues_WhenCalledMultipleTimes()
     {
         // Arrange
         var startTime = DateTime.UtcNow;
@@ -204,5 +205,302 @@ public class IssuesStorageIntegrationTests
 
         var issue3 = allIssues.Single(i => i.Id == 3);
         Assert.That(issue3, Is.EqualTo(createdIssue3));
+    }
+
+    [Test]
+    public void GetIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        _ = issuesStorage.CreateIssue(createDto1);
+        _ = issuesStorage.CreateIssue(createDto2);
+        _ = issuesStorage.CreateIssue(createDto3);
+
+        // Act
+        // Assert
+        Assert.That(() => _ = issuesStorage.GetIssue(12), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+    }
+
+    [Test]
+    public void GetIssue_ShouldReturnsIssue_GivenIssueId()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        _ = issuesStorage.CreateIssue(createDto1);
+        var createdIssue2 = issuesStorage.CreateIssue(createDto2);
+        _ = issuesStorage.CreateIssue(createDto3);
+
+        // Act
+        var issue2 = issuesStorage.GetIssue(createdIssue2.Id);
+
+        // Assert
+        Assert.That(issue2, Is.EqualTo(createdIssue2));
+    }
+
+    [Test]
+    public void UpdateIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        _ = issuesStorage.CreateIssue(createDto1);
+        _ = issuesStorage.CreateIssue(createDto2);
+        _ = issuesStorage.CreateIssue(createDto3);
+
+        var updateDto = new IssueUpdateDto
+        {
+            Title = "Issue that does not exist",
+            Description = "This is issue is not present in storage.",
+            Status = "Unknown"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => _ = issuesStorage.UpdateIssue(12, updateDto), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+    }
+
+    [Test]
+    public void UpdateIssue_ShouldUpdateExistingIssue()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        _ = issuesStorage.CreateIssue(createDto1);
+        var createdIssue2 = issuesStorage.CreateIssue(createDto2);
+        _ = issuesStorage.CreateIssue(createDto3);
+
+        var updateDto = new IssueUpdateDto
+        {
+            Title = "Updated second issue",
+            Description = "This is the second issue that was updated.",
+            Status = "Closed"
+        };
+
+        // Act
+        var updatedIssue = issuesStorage.UpdateIssue(createdIssue2.Id, updateDto);
+
+        // Assert
+        Assert.That(updatedIssue.Id, Is.EqualTo(createdIssue2.Id));
+        Assert.That(updatedIssue.Title, Is.EqualTo(updateDto.Title));
+        Assert.That(updatedIssue.Description, Is.EqualTo(updateDto.Description));
+        Assert.That(updatedIssue.Status, Is.EqualTo(updateDto.Status));
+        Assert.That(updatedIssue.CreatedDateTime, Is.EqualTo(createdIssue2.CreatedDateTime));
+        Assert.That(updatedIssue.UpdatedDateTime, Is.GreaterThan(createdIssue2.UpdatedDateTime));
+
+        var issue2 = issuesStorage.GetIssue(createdIssue2.Id);
+        Assert.That(issue2, Is.EqualTo(updatedIssue));
+    }
+
+    [Test]
+    public void DeleteIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        _ = issuesStorage.CreateIssue(createDto1);
+        _ = issuesStorage.CreateIssue(createDto2);
+        _ = issuesStorage.CreateIssue(createDto3);
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.DeleteIssue(12), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+    }
+
+    [Test]
+    public void DeleteIssue_ShouldDeleteExistingIssue()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var createDto1 = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open"
+        };
+
+        var createDto2 = new IssueCreateDto
+        {
+            Title = "Second issue",
+            Description = "This is the second issue.",
+            Status = "In Progress"
+        };
+
+        var createDto3 = new IssueCreateDto
+        {
+            Title = "Third issue",
+            Description = "This is the third issue.",
+            Status = "Closed"
+        };
+        var createdIssue1 = issuesStorage.CreateIssue(createDto1);
+        var createdIssue2 = issuesStorage.CreateIssue(createDto2);
+        var createdIssue3 = issuesStorage.CreateIssue(createDto3);
+
+        // Assume
+        var issuesBefore = issuesStorage.GetAllIssues();
+        Assert.That(issuesBefore, Has.Count.EqualTo(3));
+
+        // Act
+        issuesStorage.DeleteIssue(createdIssue2.Id);
+
+        // Assert
+        var issuesAfter = issuesStorage.GetAllIssues();
+        Assert.That(issuesAfter, Has.Count.EqualTo(2));
+        Assert.That(issuesAfter, Contains.Item(createdIssue1));
+        Assert.That(issuesAfter, Does.Not.Contain(createdIssue2));
+        Assert.That(issuesAfter, Contains.Item(createdIssue3));
+    }
+
+    [Test]
+    public void StorageAccessIsThreadSafe()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        // Act
+        var task1 = Task.Run(() =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                issuesStorage.CreateIssue(GetRandomCreateIssueDto());
+                _ = issuesStorage.GetAllIssues();
+            }
+        });
+
+        var task2 = Task.Run(() =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                issuesStorage.CreateIssue(GetRandomCreateIssueDto());
+                _ = issuesStorage.GetAllIssues();
+            }
+        });
+
+        var task3 = Task.Run(() =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                issuesStorage.CreateIssue(GetRandomCreateIssueDto());
+                _ = issuesStorage.GetAllIssues();
+            }
+        });
+
+        // Assert
+        Task.WaitAll(task1, task2, task3);
+        var issues = issuesStorage.GetAllIssues();
+        Assert.That(issues, Has.Count.EqualTo(3000));
+    }
+
+    private static IssueCreateDto GetRandomCreateIssueDto()
+    {
+        var guid = Guid.NewGuid();
+        return new IssueCreateDto
+        {
+            Title = $"Issue #{guid}",
+            Description = $"This is the issue #{guid}.",
+            Status = "Open"
+        };
     }
 }

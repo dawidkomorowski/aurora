@@ -6,7 +6,16 @@ using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
 
-public sealed class IssuesStorage
+public interface IIssuesStorage
+{
+    IssueReadDto CreateIssue(IssueCreateDto issueCreateDto);
+    IReadOnlyCollection<IssueReadDto> GetAllIssues();
+    IssueReadDto GetIssue(int id);
+    IssueReadDto UpdateIssue(int id, IssueUpdateDto issueUpdateDto);
+    void DeleteIssue(int id);
+}
+
+public sealed class IssuesStorage : IIssuesStorage
 {
     private readonly string _filePath;
     private readonly object _lock = new();

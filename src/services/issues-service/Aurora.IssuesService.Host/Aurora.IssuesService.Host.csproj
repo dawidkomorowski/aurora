@@ -5,4 +5,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Aurora.IssuesService.DataStore\Aurora.IssuesService.DataStore.csproj" />
+  </ItemGroup>
+
 </Project>

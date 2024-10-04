@@ -239,7 +239,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => _ = issuesStorage.GetIssue(12), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+        Assert.That(() => _ = issuesStorage.GetIssue(12), Throws.TypeOf<IssueNotFoundException>());
     }
 
     [Test]
@@ -318,7 +318,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => _ = issuesStorage.UpdateIssue(12, updateDto), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+        Assert.That(() => _ = issuesStorage.UpdateIssue(12, updateDto), Throws.TypeOf<IssueNotFoundException>());
     }
 
     [Test]
@@ -405,7 +405,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.DeleteIssue(12), Throws.InvalidOperationException.With.Message.Contains("Issue not found."));
+        Assert.That(() => issuesStorage.DeleteIssue(12), Throws.TypeOf<IssueNotFoundException>());
     }
 
     [Test]

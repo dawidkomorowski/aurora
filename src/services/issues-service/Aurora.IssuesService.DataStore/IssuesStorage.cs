@@ -6,7 +6,18 @@ using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
 
-public sealed class IssuesStorage
+public interface IIssuesStorage
+{
+    IssueReadDto CreateIssue(IssueCreateDto issueCreateDto);
+    IReadOnlyCollection<IssueReadDto> GetAllIssues();
+    IssueReadDto GetIssue(int id);
+    IssueReadDto UpdateIssue(int id, IssueUpdateDto issueUpdateDto);
+    void DeleteIssue(int id);
+}
+
+public sealed class IssueNotFoundException() : Exception("Issue not found.");
+
+public sealed class IssuesStorage : IIssuesStorage
 {
     private readonly string _filePath;
     private readonly object _lock = new();
@@ -67,7 +78,7 @@ public sealed class IssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new InvalidOperationException("Issue not found.");
+            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new IssueNotFoundException();
         }
     }
 
@@ -76,7 +87,7 @@ public sealed class IssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            var issueToUpdate = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new InvalidOperationException("Issue not found.");
+            var issueToUpdate = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
             var index = issuesDatabase.Issues.IndexOf(issueToUpdate);
 
             var utcNow = DateTime.UtcNow;
@@ -104,7 +115,7 @@ public sealed class IssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            var issueToDelete = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new InvalidOperationException("Issue not found.");
+            var issueToDelete = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
             issuesDatabase.Issues.Remove(issueToDelete);
             WriteDatabaseFile(issuesDatabase);
         }

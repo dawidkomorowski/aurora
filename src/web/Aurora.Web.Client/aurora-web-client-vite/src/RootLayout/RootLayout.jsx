@@ -3,11 +3,13 @@ import { Link, Outlet, useRouteError } from "react-router-dom";
 export function RootLayout() {
     return (
         <>
-            <div>
+            <div style={{ backgroundColor: "gray", padding: "1px"}}>
                 <nav>
                     <ul>
                         <li>
-                            <Link to="/issue-explorer">Issue Explorer</Link>
+                            <h3>
+                                <Link to="/issue-explorer">Issue Explorer</Link>
+                            </h3>
                         </li>
                     </ul>
                 </nav>

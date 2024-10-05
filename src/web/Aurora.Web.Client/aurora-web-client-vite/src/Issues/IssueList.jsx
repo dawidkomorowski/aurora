@@ -7,7 +7,7 @@ export function IssueList({ data }) {
 
     return (
         <>
-            <div style={{ backgroundColor: "lightgray" }}>
+            <div style={{ backgroundColor: "lightgray", padding: "10px"}}>
                 <div>
                     {items}
                 </div>

@@ -2,6 +2,7 @@ using System.IO;
 using Aurora.IssuesService.DataStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Aurora.IssuesService.Host
 {
@@ -20,6 +21,19 @@ namespace Aurora.IssuesService.Host
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            if (app.Environment.IsDevelopment())
+            {
+                // Set CORS to allow any origin.
+                app.UseCors(corsPolicyBuilder =>
+                {
+                    corsPolicyBuilder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            }
+
             app.MapControllers();
 
             app.Run();

@@ -1,23 +1,5 @@
-export function IssuesList() {
-    const mockData = [
-        {
-            "id": 1,
-            "title": "Issue 1776966515",
-            "status": "Open"
-        },
-        {
-            "id": 2,
-            "title": "Issue 1160529936",
-            "status": "Open"
-        },
-        {
-            "id": 3,
-            "title": "Issue 950935701",
-            "status": "Open"
-        }
-    ];
-
-    const items = mockData.map(i => {
+export function IssuesList({ data }) {
+    const items = data.map(i => {
         return <IssuesListItem key={i.id} id={i.id} title={i.title} status={i.status} />
     });
 
@@ -44,3 +26,4 @@ function IssuesListItem({ id, title, status }) {
         </>
     );
 }
+

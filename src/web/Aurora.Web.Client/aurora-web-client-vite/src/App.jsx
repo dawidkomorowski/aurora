@@ -1,9 +1,9 @@
-import { IssuesList } from "./Issues/IssuesList"
+import { IssuesExplorer } from "./Issues/IssuesExplorer"
 
 function App() {
   return (
     <>
-      <IssuesList />
+      <IssuesExplorer />
     </>
   )
 }

@@ -1,6 +1,6 @@
-export function IssuesList({ data }) {
+export function IssueList({ data }) {
     const items = data.map(i => {
-        return <IssuesListItem key={i.id} id={i.id} title={i.title} status={i.status} />
+        return <IssueListItem key={i.id} id={i.id} title={i.title} status={i.status} />
     });
 
     return (
@@ -15,7 +15,7 @@ export function IssuesList({ data }) {
     );
 }
 
-function IssuesListItem({ id, title, status }) {
+function IssueListItem({ id, title, status }) {
     return (
         <>
             <div style={{ display: "flex" }}>
@@ -26,4 +26,3 @@ function IssuesListItem({ id, title, status }) {
         </>
     );
 }
-

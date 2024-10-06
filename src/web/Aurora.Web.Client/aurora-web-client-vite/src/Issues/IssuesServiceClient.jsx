@@ -43,4 +43,28 @@ export class IssuesServiceClient {
             return response.json();
         });
     }
+
+    static update(id, title, description, status) {
+        const createIssueRequest = {
+            title: title,
+            description: description,
+            status: status
+        }
+
+        const requestInit = {
+            method: "PUT",
+            body: JSON.stringify(createIssueRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return fetch(`${this.#issuesServiceUrl}/issues/${id}`, requestInit).then(response => {
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            return response.json();
+        });
+    }
 }

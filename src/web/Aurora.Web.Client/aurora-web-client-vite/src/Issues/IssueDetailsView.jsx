@@ -22,6 +22,12 @@ export function IssueDetailsView() {
     }
 
     function handleSaveButtonClick() {
+        IssuesServiceClient.update(data.id, data.title, data.description, data.status).then(responseData => {
+            setData(responseData);
+        }).catch(error => {
+            console.error(error);
+        });
+
         setEditMode(false);
     }
 

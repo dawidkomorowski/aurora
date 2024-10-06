@@ -15,7 +15,6 @@ export function IssueExplorer() {
 
     return (
         <>
-            <div>Issue Explorer</div>
             <IssueList data={data} />
         </>
     );

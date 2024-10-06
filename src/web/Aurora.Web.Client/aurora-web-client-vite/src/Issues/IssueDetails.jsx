@@ -23,11 +23,12 @@ export function IssueDetails() {
                 <div><h4>Description</h4></div>
                 <div>{data.description}</div>
                 <br />
-                <div>Status: {data.status}</div>
+                <div><strong>Status: </strong>{data.status}</div>
                 <br />
-                <div>Created: {data.createdDateTime}</div>
-                <div>Updated: {data.updatedDateTime}</div>
+                <div><strong>Created: </strong>{data.createdDateTime}</div>
+                <div><strong>Updated: </strong>{data.updatedDateTime}</div>
             </div>
         </div >
     );
 }
+

@@ -1,9 +1,9 @@
 import { IssueExplorer } from "./Issues/IssueExplorer"
-import { IssueDetails } from "./Issues/IssueDetails"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { RootLayout } from "./RootLayout/RootLayout"
 import { NotFoundView } from "./RootLayout/NotFoundView"
 import { CreateIssueView } from "./Issues/CreateIssueView"
+import { IssueDetailsView } from "./Issues/IssueDetailsView"
 
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
           <Route index element={<Navigate to="issue/explorer" replace />} />
           <Route path="issue/explorer" element={<IssueExplorer />} />
           <Route path="issue/create" element={<CreateIssueView />} />
-          <Route path="issue/:issueId" element={<IssueDetails />} />
+          <Route path="issue/:issueId" element={<IssueDetailsView />} />
           <Route path="*" element={<NotFoundView />} />
         </Route>
       </Routes>

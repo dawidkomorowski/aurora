@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { IssuesServiceClient } from "./IssuesServiceClient";
-import { IssueDetails, IssueEditor } from "./IssueDetails";
+import { IssueDetails } from "./IssueDetails";
+import { IssueEditor } from "./IssueEditor";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();
@@ -27,7 +28,7 @@ export function IssueDetailsView() {
     let content;
     let button;
     if (editMode) {
-        content = <IssueEditor data={data} setData={setData} />
+        content = <div style={{ marginTop: "20px" }}><IssueEditor data={data} setData={setData} /></div>
         button = <button onClick={handleSaveButtonClick}>Save</button>
     }
     else {

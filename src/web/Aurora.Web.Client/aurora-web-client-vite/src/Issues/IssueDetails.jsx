@@ -9,10 +9,3 @@ export function IssueDetails({ title, description, status }) {
         </div>
     );
 }
-
-export function IssueEditor({ data, setData }) {
-    return (
-        <div></div>
-    );
-}
-

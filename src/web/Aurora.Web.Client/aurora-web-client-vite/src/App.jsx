@@ -10,10 +10,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<RootLayout />}>
-          <Route index element={<Navigate to="issue-explorer" replace />} />
-          <Route path="issue-explorer" element={<IssueExplorer />} />
-          <Route path="issue/:issueId" element={<IssueDetails />} />
+          <Route index element={<Navigate to="issue/explorer" replace />} />
+          <Route path="issue/explorer" element={<IssueExplorer />} />
           <Route path="issue/create" element={<CreateIssueView />} />
+          <Route path="issue/:issueId" element={<IssueDetails />} />
           <Route path="*" element={<NotFoundView />} />
         </Route>
       </Routes>

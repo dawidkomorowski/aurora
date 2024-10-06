@@ -8,7 +8,7 @@ export function RootLayout() {
                 <div style={{ marginLeft: "20px", marginRight: "20px" }}>Aurora</div>
                 <nav>
                     <ul style={{ listStyleType: "none", margin: "0px", padding: "0px" }}>
-                        <NavigationBarItem title="Issue Explorer" to="/issue-explorer" />
+                        <NavigationBarItem title="Issue Explorer" to="/issue/explorer" />
                         <NavigationBarItem title="Create Issue" to="/issue/create" />
                     </ul>
                 </nav>

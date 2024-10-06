@@ -20,4 +20,27 @@ export class IssuesServiceClient {
             return response.json();
         });
     }
+
+    static create(title, description) {
+        const createIssueRequest = {
+            title: title,
+            description: description
+        }
+
+        const requestInit = {
+            method: "POST",
+            body: JSON.stringify(createIssueRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return fetch(`${this.#issuesServiceUrl}/issues`, requestInit).then(response => {
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            return response.json();
+        });
+    }
 }

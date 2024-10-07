@@ -4,6 +4,10 @@ GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 
 ###
 
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues?status=Closed
+
+###
+
 POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 Content-Type: application/json
 

@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
 
+public sealed class GetAllFilters
+{
+    public string? Status { get; set; }
+}
+
 public sealed class IssueOverviewResponse
 {
     public required int Id { get; init; }
@@ -62,9 +67,15 @@ public class IssuesController : ControllerBase
     }
 
     [HttpGet]
-    public IEnumerable<IssueOverviewResponse> GetAll()
+    public IEnumerable<IssueOverviewResponse> GetAll([FromQuery] GetAllFilters filters)
     {
-        var issues = _issuesStorage.GetAllIssues();
+        var issues = _issuesStorage.GetAllIssues().AsEnumerable();
+
+        if (filters.Status is not null)
+        {
+            issues = issues.Where(i => i.Status == filters.Status);
+        }
+
         var result = issues.Select(i => new IssueOverviewResponse
         {
             Id = i.Id,

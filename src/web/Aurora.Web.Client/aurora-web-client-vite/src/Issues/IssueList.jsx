@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import styles from "./IssueList.module.css"
 
 export function IssueList({ data }) {
     const items = data.map(i => {
@@ -15,10 +16,18 @@ export function IssueList({ data }) {
 }
 
 function IssueListItem({ id, title, status }) {
+    const navigate = useNavigate();
+
+    function handleClick() {
+        navigate(`/issue/${id}`);
+    }
+
     return (
-        <div style={{ display: "flex" }}>
-            <div style={{ width: "75px", textAlign: "center" }}><Link to={`/issue/${id}`}>{id}</Link></div>
-            <div style={{ width: "80%" }}>{title}</div>
+        <div className={styles.listItem} style={{ display: "flex", cursor: "pointer", borderBottomStyle: "solid", borderWidth: "1px" }} onClick={handleClick}>
+            <div style={{ width: "75px", textAlign: "center" }}>{id}</div>
+            <div style={{ width: "80%" }}>
+                <strong>{title}</strong>
+            </div>
             <div>{status}</div>
         </div>
     );

@@ -1,0 +1,9 @@
+.listItem {
+    display: block;
+    padding: 10px;
+    font-size: large;
+}
+
+.listItem:hover {
+    background-color: #757575;
+}

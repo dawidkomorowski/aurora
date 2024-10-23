@@ -8,6 +8,12 @@ services:
       AURORA_ISSUES_DB_PATH: "storage/issues-db.json"
     ports:
       - "5180:5180"
+    
+  web:
+    image: aurora.web:latest
+    build: ./src/web
+    ports:
+      - "8100:8100"
 
 volumes:
   issues-service-storage:

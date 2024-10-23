@@ -14,7 +14,6 @@ namespace Aurora.IssuesService.Host
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
 
             // Use DEV database during development.

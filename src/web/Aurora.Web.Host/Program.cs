@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 
 namespace Aurora.Web.Host;
 
-public class Program
+public static class Program
 {
     public static void Main(string[] args)
     {

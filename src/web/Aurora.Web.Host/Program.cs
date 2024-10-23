@@ -13,8 +13,7 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        app.UseDefaultFiles();
-        app.UseStaticFiles();
+        app.UseFileServer();
 
         app.Run();
     }

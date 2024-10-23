@@ -11,7 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "issues-servce", "issues-ser
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aurora.IssuesService.DataStore.IntegrationTests", "src\services\issues-service\Aurora.IssuesService.DataStore.IntegrationTests\Aurora.IssuesService.DataStore.IntegrationTests.csproj", "{52CE3C09-F441-4BE6-87F6-BB9663C12A3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aurora.IssuesService.Host", "src\services\issues-service\Aurora.IssuesService.Host\Aurora.IssuesService.Host.csproj", "{C5F3669C-DF70-415E-837E-82F52E72143A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aurora.IssuesService.Host", "src\services\issues-service\Aurora.IssuesService.Host\Aurora.IssuesService.Host.csproj", "{C5F3669C-DF70-415E-837E-82F52E72143A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{C9F90C16-3A7E-47FC-AEA8-1A594C3128B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aurora.Web.Host", "src\web\Aurora.Web.Host\Aurora.Web.Host.csproj", "{17DF7293-BCAF-4455-BBC1-7E4564997D4C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +35,10 @@ Global
 		{C5F3669C-DF70-415E-837E-82F52E72143A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5F3669C-DF70-415E-837E-82F52E72143A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5F3669C-DF70-415E-837E-82F52E72143A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17DF7293-BCAF-4455-BBC1-7E4564997D4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17DF7293-BCAF-4455-BBC1-7E4564997D4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17DF7293-BCAF-4455-BBC1-7E4564997D4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17DF7293-BCAF-4455-BBC1-7E4564997D4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -40,6 +48,7 @@ Global
 		{E10AB0E0-5A94-4781-B6FF-66ACA9CD5E8D} = {975E85FC-D5D4-4A5D-9320-09AEA0767505}
 		{52CE3C09-F441-4BE6-87F6-BB9663C12A3F} = {E10AB0E0-5A94-4781-B6FF-66ACA9CD5E8D}
 		{C5F3669C-DF70-415E-837E-82F52E72143A} = {E10AB0E0-5A94-4781-B6FF-66ACA9CD5E8D}
+		{17DF7293-BCAF-4455-BBC1-7E4564997D4C} = {C9F90C16-3A7E-47FC-AEA8-1A594C3128B3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {530084E9-87E5-439C-B303-785B216E6CF4}

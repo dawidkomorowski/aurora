@@ -13,7 +13,8 @@ public static class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        app.UseFileServer();
+        app.UseStaticFiles();
+        app.UseSpa(_ => { });
 
         app.Run();
     }

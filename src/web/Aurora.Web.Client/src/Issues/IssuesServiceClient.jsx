@@ -1,6 +1,6 @@
 
 export class IssuesServiceClient {
-    static #issuesServiceUrl = "http://localhost:5180/api";
+    static #issuesServiceUrl = "http://localhost:8201/api";
     static getAll(filters) {
         let uri = `${this.#issuesServiceUrl}/issues`;
 

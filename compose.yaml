@@ -7,7 +7,7 @@ services:
     environment:
       AURORA_ISSUES_DB_PATH: "storage/issues-db.json"
     ports:
-      - "5180:5180"
+      - "8201:8201"
     
   web:
     image: aurora.web:latest

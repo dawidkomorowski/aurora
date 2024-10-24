@@ -3,4 +3,4 @@ if (-not $env:AURORA_STORAGE_PATH) {
     return
 }
 
-docker compose up --build -d
+docker compose -f compose.prod.yaml up --build -d

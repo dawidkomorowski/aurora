@@ -1,0 +1,1 @@
+docker compose -f compose.dev.yaml --profile services up --build -d

@@ -1,24 +1,24 @@
+name: dev-aurora
 services:
   services.issues-service:
+    profiles:
+      - services
     image: aurora.services.issues-service:latest
-    build: ./src/services/issues-service
+    build: ../src/services/issues-service
     volumes:
       - issues-service-storage:/app/storage
     environment:
       AURORA_ISSUES_DB_PATH: "storage/issues-db.json"
     ports:
-      - "8201:8201"
+      - "7201:8201"
     
   web:
+    profiles:
+      - web
     image: aurora.web:latest
-    build: ./src/web
+    build: ../src/web
     ports:
-      - "8100:8100"
+      - "7100:8100"
 
 volumes:
   issues-service-storage:
-    driver: local
-    driver_opts:
-      type: none
-      device: "${AURORA_STORAGE_PATH}/services/issues-service"
-      o: bind

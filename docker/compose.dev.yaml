@@ -16,7 +16,10 @@ services:
     profiles:
       - web
     image: aurora.web:latest
-    build: ../src/web
+    build:
+      context: ../src/web
+      args:
+        - ISSUES_SERVICE_API_URI=http://localhost:7201
     ports:
       - "7100:8100"
 

@@ -13,6 +13,11 @@ public interface IIssuesStorage
     IssueReadDto GetIssue(int id);
     IssueReadDto UpdateIssue(int id, IssueUpdateDto issueUpdateDto);
     void DeleteIssue(int id);
+
+    VersionReadDto CreateVersion(VersionCreateDto versionCreateDto);
+    IReadOnlyCollection<VersionReadDto> GetAllVersions();
+    VersionReadDto GetVersion(int id);
+    VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
@@ -120,6 +125,14 @@ public sealed class IssuesStorage : IIssuesStorage
             WriteDatabaseFile(issuesDatabase);
         }
     }
+
+    public VersionReadDto CreateVersion(VersionCreateDto versionCreateDto) => throw new NotImplementedException();
+
+    public IReadOnlyCollection<VersionReadDto> GetAllVersions() => throw new NotImplementedException();
+
+    public VersionReadDto GetVersion(int id) => throw new NotImplementedException();
+
+    public VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto) => throw new NotImplementedException();
 
     private IssuesDatabase ReadDatabaseFile()
     {

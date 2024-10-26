@@ -1,4 +1,4 @@
-@Aurora.IssuesService.Host_HostAddress = http://localhost:8201
+@Aurora.IssuesService.Host_HostAddress = http://localhost:7201
 
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 

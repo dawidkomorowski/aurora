@@ -1,2 +1,7 @@
+# Ignore node artifacts
 **/node_modules
 **/dist
+
+# Ignore dotnet artifacts
+**/bin
+**/obj

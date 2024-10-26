@@ -1,0 +1,3 @@
+# Ignore dotnet artifacts
+**/bin
+**/obj

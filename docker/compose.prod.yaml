@@ -1,17 +1,18 @@
+name: aurora
 services:
   services.issues-service:
     image: aurora.services.issues-service:latest
-    build: ./src/services/issues-service
+    build: ../src/services/issues-service
     volumes:
       - issues-service-storage:/app/storage
     environment:
       AURORA_ISSUES_DB_PATH: "storage/issues-db.json"
     ports:
-      - "5180:5180"
+      - "8201:8201"
     
   web:
     image: aurora.web:latest
-    build: ./src/web
+    build: ../src/web
     ports:
       - "8100:8100"
 

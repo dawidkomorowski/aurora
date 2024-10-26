@@ -1,0 +1,29 @@
+name: dev-aurora
+services:
+  services.issues-service:
+    profiles:
+      - all
+      - services
+    image: aurora.services.issues-service:latest
+    build: ../src/services/issues-service
+    volumes:
+      - issues-service-storage:/app/storage
+    environment:
+      AURORA_ISSUES_DB_PATH: "storage/issues-db.json"
+    ports:
+      - "7201:8201"
+    
+  web:
+    profiles:
+      - all
+      - web
+    image: aurora.web:latest
+    build:
+      context: ../src/web
+      args:
+        - ISSUES_SERVICE_API_URL=http://localhost:7201
+    ports:
+      - "7100:8100"
+
+volumes:
+  issues-service-storage:

@@ -1,4 +1,5 @@
 FROM node:22 AS build-client
+ARG ISSUES_SERVICE_API_URL=http://localhost:8201
 WORKDIR /src/web
 
 COPY Aurora.Web.Client ./Aurora.Web.Client/

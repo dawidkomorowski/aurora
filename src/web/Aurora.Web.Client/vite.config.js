@@ -6,7 +6,7 @@ export default defineConfig(() => {
   return {
     plugins: [react()],
     define: {
-      __ISSUES_SERVICE_API_URI__: JSON.stringify(process.env.ISSUES_SERVICE_API_URI ?? "http://localhost:7201")
+      __ISSUES_SERVICE_API_URL__: JSON.stringify(process.env.ISSUES_SERVICE_API_URL ?? "http://localhost:7201")
     }
   }
 })

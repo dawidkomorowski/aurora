@@ -1,5 +1,6 @@
 export class IssuesServiceClient {
-    static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URI__}/api`;
+    static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
+
     static getAll(filters) {
         let uri = `${this.#issuesServiceUrl}/issues`;
 

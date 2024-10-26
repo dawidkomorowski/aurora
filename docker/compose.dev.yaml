@@ -2,6 +2,7 @@ name: dev-aurora
 services:
   services.issues-service:
     profiles:
+      - all
       - services
     image: aurora.services.issues-service:latest
     build: ../src/services/issues-service
@@ -14,6 +15,7 @@ services:
     
   web:
     profiles:
+      - all
       - web
     image: aurora.web:latest
     build:

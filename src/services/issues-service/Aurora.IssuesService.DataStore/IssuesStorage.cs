@@ -6,6 +6,12 @@ using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
 
+// TODO #37
+// TODO - Issues are extended to have a version property
+// TODO   - Version property on Issue should be reference to actual Version. Version ID can be used for that.
+// TODO   - Version property can be `null` meaning no version is assigned to that issue
+// TODO   - Referential integrity should be guaranteed (version assigned to an issue must be already defined)
+
 public interface IIssuesStorage
 {
     IssueReadDto CreateIssue(IssueCreateDto issueCreateDto);

@@ -8,9 +8,8 @@ namespace Aurora.IssuesService.DataStore;
 
 // TODO #37
 // TODO - Issues are extended to have a version property
-// TODO   - Version property on Issue should be reference to actual Version. Version ID can be used for that.
-// TODO   - Version property can be `null` meaning no version is assigned to that issue
-// TODO   - Referential integrity should be guaranteed (version assigned to an issue must be already defined)
+// TODO   - Version property on Issue should be reference to actual Version. Version ID can be used for that. This Could be tested by changing existing version.
+// TODO   - Version property can be `null` meaning no version is assigned to that issue.
 
 public interface IIssuesStorage
 {
@@ -59,6 +58,12 @@ public sealed class IssuesStorage : IIssuesStorage
             var utcNow = DateTime.UtcNow;
             var nextId = issuesDatabase.Issues.Count != 0 ? issuesDatabase.Issues.Max(i => i.Id) + 1 : 1;
 
+            int? versionId = null;
+            if (issueCreateDto.VersionId.HasValue)
+            {
+                versionId = issuesDatabase.GetVersion(issueCreateDto.VersionId.Value).Id;
+            }
+
             var newIssue = new DbIssue
             {
                 Id = nextId,
@@ -66,14 +71,15 @@ public sealed class IssuesStorage : IIssuesStorage
                 Description = issueCreateDto.Description,
                 Status = issueCreateDto.Status,
                 CreatedDateTime = utcNow,
-                UpdatedDateTime = utcNow
+                UpdatedDateTime = utcNow,
+                VersionId = versionId
             };
 
             issuesDatabase.Issues.Add(newIssue);
 
             WriteDatabaseFile(issuesDatabase);
 
-            return newIssue.ToReadDto();
+            return newIssue.ToReadDto(issuesDatabase);
         }
     }
 
@@ -82,7 +88,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.Select(i => i.ToReadDto()).ToArray();
+            return issuesDatabase.Issues.Select(i => i.ToReadDto(issuesDatabase)).ToArray();
         }
     }
 
@@ -91,7 +97,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new IssueNotFoundException();
+            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto(issuesDatabase) ?? throw new IssueNotFoundException();
         }
     }
 
@@ -119,7 +125,7 @@ public sealed class IssuesStorage : IIssuesStorage
 
             WriteDatabaseFile(issuesDatabase);
 
-            return issueToUpdate.ToReadDto();
+            return issueToUpdate.ToReadDto(issuesDatabase);
         }
     }
 
@@ -158,7 +164,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Versions.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new VersionNotFoundException();
+            return issuesDatabase.GetVersion(id).ToReadDto();
         }
     }
 
@@ -201,6 +207,11 @@ public sealed class IssuesStorage : IIssuesStorage
         public int Version { get; init; }
         public required List<DbIssue> Issues { get; init; }
         public required List<DbVersion> Versions { get; init; }
+
+        public DbVersion GetVersion(int id)
+        {
+            return Versions.SingleOrDefault(v => v.Id == id) ?? throw new VersionNotFoundException();
+        }
     }
 
     private sealed class DbIssue
@@ -211,15 +222,17 @@ public sealed class IssuesStorage : IIssuesStorage
         public required string Status { get; init; }
         public required DateTime CreatedDateTime { get; init; }
         public required DateTime UpdatedDateTime { get; init; }
+        public int? VersionId { get; init; }
 
-        public IssueReadDto ToReadDto() => new()
+        public IssueReadDto ToReadDto(IssuesDatabase issuesDatabase) => new()
         {
             Id = Id,
             Title = Title,
             Description = Description,
             Status = Status,
             CreatedDateTime = CreatedDateTime,
-            UpdatedDateTime = UpdatedDateTime
+            UpdatedDateTime = UpdatedDateTime,
+            Version = VersionId.HasValue ? issuesDatabase.GetVersion(VersionId.Value).ToReadDto() : null
         };
     }
 

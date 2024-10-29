@@ -66,6 +66,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue.CreatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue.UpdatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue.CreatedDateTime, Is.EqualTo(createdIssue.UpdatedDateTime));
+        Assert.That(createdIssue.Version, Is.Null);
 
         var issuesAfter = issuesStorage.GetAllIssues();
         Assert.That(issuesAfter, Has.Count.EqualTo(1));
@@ -117,6 +118,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue1.CreatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue1.UpdatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue1.CreatedDateTime, Is.EqualTo(createdIssue1.UpdatedDateTime));
+        Assert.That(createdIssue1.Version, Is.Null);
 
         Assert.That(createdIssue2.Id, Is.EqualTo(2));
         Assert.That(createdIssue2.Title, Is.EqualTo(createDto2.Title));
@@ -125,6 +127,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue2.CreatedDateTime, Is.GreaterThan(createdIssue1.CreatedDateTime));
         Assert.That(createdIssue2.UpdatedDateTime, Is.GreaterThan(createdIssue1.UpdatedDateTime));
         Assert.That(createdIssue2.CreatedDateTime, Is.EqualTo(createdIssue2.UpdatedDateTime));
+        Assert.That(createdIssue2.Version, Is.Null);
 
         Assert.That(createdIssue3.Id, Is.EqualTo(3));
         Assert.That(createdIssue3.Title, Is.EqualTo(createDto3.Title));
@@ -133,6 +136,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue3.CreatedDateTime, Is.GreaterThan(createdIssue2.CreatedDateTime));
         Assert.That(createdIssue3.UpdatedDateTime, Is.GreaterThan(createdIssue2.UpdatedDateTime));
         Assert.That(createdIssue3.CreatedDateTime, Is.EqualTo(createdIssue3.UpdatedDateTime));
+        Assert.That(createdIssue3.Version, Is.Null);
 
         var issuesAfter = issuesStorage.GetAllIssues();
         Assert.That(issuesAfter, Has.Count.EqualTo(3));
@@ -145,6 +149,65 @@ public class IssuesStorageIntegrationTests
 
         var issue3 = issuesAfter.Single(i => i.Id == 3);
         Assert.That(issue3, Is.EqualTo(createdIssue3));
+    }
+
+    [Test]
+    public void CreateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var createDto = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open",
+            VersionId = 123
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateIssue(createDto), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
+    public void CreateIssue_ShouldCreateNewIssue_WithVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var createDto = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open",
+            VersionId = createdVersion.Id
+        };
+
+        // Assume
+        var issuesBefore = issuesStorage.GetAllIssues();
+        Assert.That(issuesBefore, Is.Empty);
+
+        // Act
+        var createdIssue = issuesStorage.CreateIssue(createDto);
+
+        // Assert
+        Assert.That(createdIssue.Id, Is.EqualTo(1));
+        Assert.That(createdIssue.Title, Is.EqualTo(createDto.Title));
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        var issuesAfter = issuesStorage.GetAllIssues();
+        Assert.That(issuesAfter, Has.Count.EqualTo(1));
+        var issue = issuesAfter.Single();
+        Assert.That(issue, Is.EqualTo(createdIssue));
     }
 
     [Test]

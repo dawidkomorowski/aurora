@@ -7,9 +7,9 @@ using System.Text.Json;
 namespace Aurora.IssuesService.DataStore;
 
 // TODO #37
-// TODO - Issues are extended to have a version property
-// TODO   - Version property on Issue should be reference to actual Version. Version ID can be used for that. This Could be tested by changing existing version.
-// TODO   - Version property can be `null` meaning no version is assigned to that issue.
+// TODO Version property on Issue should be reference to actual Version. This Could be tested by changing existing version and checking version name on an issue.
+// TODO Should it be required for version name to be unique?
+// TODO When existing database is used by the storage it should be automatically upgraded.
 
 public interface IIssuesStorage
 {
@@ -111,6 +111,12 @@ public sealed class IssuesStorage : IIssuesStorage
 
             var utcNow = DateTime.UtcNow;
 
+            int? versionId = null;
+            if (issueUpdateDto.VersionId.HasValue)
+            {
+                versionId = issuesDatabase.GetVersion(issueUpdateDto.VersionId.Value).Id;
+            }
+
             issueToUpdate = new DbIssue
             {
                 Id = issueToUpdate.Id,
@@ -118,7 +124,8 @@ public sealed class IssuesStorage : IIssuesStorage
                 Description = issueUpdateDto.Description,
                 Status = issueUpdateDto.Status,
                 CreatedDateTime = issueToUpdate.CreatedDateTime,
-                UpdatedDateTime = utcNow
+                UpdatedDateTime = utcNow,
+                VersionId = versionId
             };
 
             issuesDatabase.Issues[index] = issueToUpdate;

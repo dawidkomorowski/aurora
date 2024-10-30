@@ -524,7 +524,7 @@ public class IssuesStorageIntegrationTests
 
         var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
 
-        var createDto = new IssueCreateDto
+        var issueCreateDto = new IssueCreateDto
         {
             Title = "Issue to update",
             Description = "This is will be updated.",
@@ -532,13 +532,13 @@ public class IssuesStorageIntegrationTests
             VersionId = createdVersion.Id
         };
 
-        var createdIssue = issuesStorage.CreateIssue(createDto);
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
 
         var updateDto = new IssueUpdateDto
         {
-            Title = createDto.Title,
-            Description = createDto.Description,
-            Status = createDto.Status,
+            Title = issueCreateDto.Title,
+            Description = issueCreateDto.Description,
+            Status = issueCreateDto.Status,
             VersionId = null
         };
 
@@ -577,7 +577,7 @@ public class IssuesStorageIntegrationTests
         var createdVersion1 = issuesStorage.CreateVersion(versionCreateDto1);
         var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
 
-        var createDto = new IssueCreateDto
+        var issueCreateDto = new IssueCreateDto
         {
             Title = "Issue to update",
             Description = "This is will be updated.",
@@ -585,13 +585,13 @@ public class IssuesStorageIntegrationTests
             VersionId = createdVersion1.Id
         };
 
-        var createdIssue = issuesStorage.CreateIssue(createDto);
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
 
         var updateDto = new IssueUpdateDto
         {
-            Title = createDto.Title,
-            Description = createDto.Description,
-            Status = createDto.Status,
+            Title = issueCreateDto.Title,
+            Description = issueCreateDto.Description,
+            Status = issueCreateDto.Status,
             VersionId = createdVersion2.Id
         };
 
@@ -639,6 +639,24 @@ public class IssuesStorageIntegrationTests
         Assert.That(versionsAfter, Has.Count.EqualTo(1));
         var version = versionsAfter.Single();
         Assert.That(version, Is.EqualTo(createdVersion));
+    }
+
+    [Test]
+    public void CreateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        issuesStorage.CreateVersion(versionCreateDto);
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateVersion(versionCreateDto), Throws.TypeOf<VersionAlreadyExistsException>());
     }
 
     [Test]
@@ -847,6 +865,35 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void UpdateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Version 1"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.UpdateVersion(createdVersion2.Id, versionUpdateDto), Throws.TypeOf<VersionAlreadyExistsException>());
+    }
+
+    [Test]
     public void UpdateVersion_ShouldUpdateExistingVersion()
     {
         // Arrange
@@ -885,6 +932,49 @@ public class IssuesStorageIntegrationTests
 
         var version2 = issuesStorage.GetVersion(createdVersion2.Id);
         Assert.That(version2, Is.EqualTo(updatedVersion));
+    }
+
+    [Test]
+    public void VersionNameAssignedToIssueIsUpdated_WhenVersionIsUpdated()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue title",
+            Description = "Issue description.",
+            Status = "Open",
+            VersionId = createdVersion.Id
+        };
+
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Version 2"
+        };
+
+        // Assume
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        // Act
+        issuesStorage.UpdateVersion(createdVersion.Id, versionUpdateDto);
+
+        // Assert
+        var issue = issuesStorage.GetIssue(createdIssue.Id);
+        Assert.That(issue.Version, Is.Not.Null);
+        Assert.That(issue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(issue.Version.Name, Is.EqualTo(versionUpdateDto.Name));
     }
 
     [Test]

@@ -7,8 +7,6 @@ using System.Text.Json;
 namespace Aurora.IssuesService.DataStore;
 
 // TODO #37
-// TODO Version property on Issue should be reference to actual Version. This Could be tested by changing existing version and checking version name on an issue.
-// TODO Should it be required for version name to be unique?
 // TODO When existing database is used by the storage it should be automatically upgraded.
 
 public interface IIssuesStorage
@@ -27,6 +25,8 @@ public interface IIssuesStorage
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
 
 public sealed class VersionNotFoundException() : Exception("Version not found.");
+
+public sealed class VersionAlreadyExistsException() : Exception("Version already exists.");
 
 public sealed class IssuesStorage : IIssuesStorage
 {
@@ -141,6 +141,12 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
+
+            if (!issuesDatabase.IsVersionNameUnique(versionCreateDto.Name))
+            {
+                throw new VersionAlreadyExistsException();
+            }
+
             var nextId = issuesDatabase.Versions.Count != 0 ? issuesDatabase.Versions.Max(i => i.Id) + 1 : 1;
 
             var newVersion = new DbVersion
@@ -180,6 +186,12 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
+
+            if (!issuesDatabase.IsVersionNameUnique(versionUpdateDto.Name))
+            {
+                throw new VersionAlreadyExistsException();
+            }
+
             var versionToUpdate = issuesDatabase.Versions.SingleOrDefault(i => i.Id == id) ?? throw new VersionNotFoundException();
             var index = issuesDatabase.Versions.IndexOf(versionToUpdate);
 
@@ -218,6 +230,11 @@ public sealed class IssuesStorage : IIssuesStorage
         public DbVersion GetVersion(int id)
         {
             return Versions.SingleOrDefault(v => v.Id == id) ?? throw new VersionNotFoundException();
+        }
+
+        public bool IsVersionNameUnique(string versionName)
+        {
+            return Versions.All(v => v.Name != versionName);
         }
     }
 

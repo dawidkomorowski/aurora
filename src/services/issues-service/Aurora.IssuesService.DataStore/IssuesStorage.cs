@@ -1,13 +1,11 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
-
-// TODO #37
-// TODO When existing database is used by the storage it should be automatically upgraded.
 
 public interface IIssuesStorage
 {
@@ -33,15 +31,30 @@ public sealed class IssuesStorage : IIssuesStorage
     private readonly string _filePath;
     private readonly object _lock = new();
 
-    public IssuesStorage(string filePath)
+    public IssuesStorage(string filePath, ILogger<IssuesStorage> logger)
     {
         _filePath = filePath;
 
-        if (!File.Exists(_filePath))
+        if (File.Exists(_filePath))
         {
+            if (StorageUpgrade.IsUpgradeRequired(filePath))
+            {
+                logger.LogInformation("Upgrading existing database.");
+                StorageUpgrade.PerformUpgrade(filePath);
+                logger.LogInformation("Database upgrade complete.");
+            }
+            else
+            {
+                logger.LogInformation("Existing database is up to date.");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Creating new database.");
+
             var issuesDatabase = new IssuesDatabase
             {
-                Version = 1,
+                Version = StorageUpgrade.CurrentVersion,
                 Issues = [],
                 Versions = []
             };

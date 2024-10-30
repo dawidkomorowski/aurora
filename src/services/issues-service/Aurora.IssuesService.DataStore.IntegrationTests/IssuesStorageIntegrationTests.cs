@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Aurora.IssuesService.DataStore.IntegrationTests;
 
@@ -31,7 +32,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         // Act
-        _ = new IssuesStorage(_temporaryStorageFilePath);
+        _ = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Assert
         var fileExists = File.Exists(_temporaryStorageFilePath);
@@ -43,7 +44,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto = new IssueCreateDto
         {
             Title = "First issue",
@@ -79,7 +80,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto1 = new IssueCreateDto
         {
             Title = "First issue",
@@ -155,7 +156,7 @@ public class IssuesStorageIntegrationTests
     public void CreateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto = new IssueCreateDto
         {
             Title = "First issue",
@@ -173,7 +174,7 @@ public class IssuesStorageIntegrationTests
     public void CreateIssue_ShouldCreateNewIssue_WithVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -214,7 +215,7 @@ public class IssuesStorageIntegrationTests
     public void GetAllIssues_ShouldReturnNoIssues_WhenStorageFileDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Act
         var issues = issuesStorage.GetAllIssues();
@@ -227,7 +228,7 @@ public class IssuesStorageIntegrationTests
     public void GetAllIssues_ShouldReturnExistingIssues_WhenStorageFileAlreadyExists()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto1 = new IssueCreateDto
         {
             Title = "First issue",
@@ -254,7 +255,7 @@ public class IssuesStorageIntegrationTests
         var createdIssue3 = issuesStorage.CreateIssue(createDto3);
 
         // Act
-        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var allIssues = issuesStorage2.GetAllIssues();
 
         // Assert
@@ -274,7 +275,7 @@ public class IssuesStorageIntegrationTests
     public void GetIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -309,7 +310,7 @@ public class IssuesStorageIntegrationTests
     public void GetIssue_ShouldReturnIssue_GivenIssueId()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -346,7 +347,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -388,7 +389,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldUpdateExistingIssue()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -441,7 +442,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto = new IssueCreateDto
         {
@@ -469,7 +470,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldSetVersion_GivenIssueWithNoVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -515,7 +516,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldSetNoVersion_GivenIssueWithVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -562,7 +563,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldSetDifferentVersion_GivenIssueWithVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -617,7 +618,7 @@ public class IssuesStorageIntegrationTests
     public void CreateVersion_ShouldCreateNewVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -645,7 +646,7 @@ public class IssuesStorageIntegrationTests
     public void CreateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -663,7 +664,7 @@ public class IssuesStorageIntegrationTests
     public void CreateVersion_ShouldCreateMultipleVersions_WhenCalledMultipleTimes()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -716,7 +717,7 @@ public class IssuesStorageIntegrationTests
     public void GetAllVersions_ShouldReturnNoVersions_WhenStorageFileDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Act
         var versions = issuesStorage.GetAllVersions();
@@ -729,7 +730,7 @@ public class IssuesStorageIntegrationTests
     public void GetAllVersions_ShouldReturnExistingVersions_WhenStorageFileAlreadyExists()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -751,7 +752,7 @@ public class IssuesStorageIntegrationTests
         var createdVersion3 = issuesStorage.CreateVersion(versionCreateDto3);
 
         // Act
-        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var allVersions = issuesStorage2.GetAllVersions();
 
         // Assert
@@ -771,7 +772,7 @@ public class IssuesStorageIntegrationTests
     public void GetVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -801,7 +802,7 @@ public class IssuesStorageIntegrationTests
     public void GetVersion_ShouldReturnVersion_GivenVersionId()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -833,7 +834,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -868,7 +869,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -897,7 +898,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateVersion_ShouldUpdateExistingVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto1 = new VersionCreateDto
         {
@@ -938,7 +939,7 @@ public class IssuesStorageIntegrationTests
     public void VersionNameAssignedToIssueIsUpdated_WhenVersionIsUpdated()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var versionCreateDto = new VersionCreateDto
         {
@@ -981,7 +982,7 @@ public class IssuesStorageIntegrationTests
     public void StorageAccessIsThreadSafe()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Act
         var task1 = Task.Run(() =>

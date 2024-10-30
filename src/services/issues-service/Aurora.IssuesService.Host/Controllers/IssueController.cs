@@ -57,11 +57,11 @@ public sealed class UpdateIssueRequest
 
 [ApiController]
 [Route("api/issues")]
-public class IssuesController : ControllerBase
+public sealed class IssueController : ControllerBase
 {
     private readonly IIssuesStorage _issuesStorage;
 
-    public IssuesController(IIssuesStorage issuesStorage)
+    public IssueController(IIssuesStorage issuesStorage)
     {
         _issuesStorage = issuesStorage;
     }

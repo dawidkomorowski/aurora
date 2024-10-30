@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,26 +13,50 @@ public interface IIssuesStorage
     IReadOnlyCollection<IssueReadDto> GetAllIssues();
     IssueReadDto GetIssue(int id);
     IssueReadDto UpdateIssue(int id, IssueUpdateDto issueUpdateDto);
-    void DeleteIssue(int id);
+
+    VersionReadDto CreateVersion(VersionCreateDto versionCreateDto);
+    IReadOnlyCollection<VersionReadDto> GetAllVersions();
+    VersionReadDto GetVersion(int id);
+    VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
+
+public sealed class VersionNotFoundException() : Exception("Version not found.");
+
+public sealed class VersionAlreadyExistsException() : Exception("Version already exists.");
 
 public sealed class IssuesStorage : IIssuesStorage
 {
     private readonly string _filePath;
     private readonly object _lock = new();
 
-    public IssuesStorage(string filePath)
+    public IssuesStorage(string filePath, ILogger<IssuesStorage> logger)
     {
         _filePath = filePath;
 
-        if (!File.Exists(_filePath))
+        if (File.Exists(_filePath))
         {
+            if (StorageUpgrade.IsUpgradeRequired(filePath))
+            {
+                logger.LogInformation("Upgrading existing database.");
+                StorageUpgrade.PerformUpgrade(filePath);
+                logger.LogInformation("Database upgrade complete.");
+            }
+            else
+            {
+                logger.LogInformation("Existing database is up to date.");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Creating new database.");
+
             var issuesDatabase = new IssuesDatabase
             {
-                Version = 1,
-                Issues = []
+                Version = StorageUpgrade.CurrentVersion,
+                Issues = [],
+                Versions = []
             };
             WriteDatabaseFile(issuesDatabase);
         }
@@ -46,6 +71,12 @@ public sealed class IssuesStorage : IIssuesStorage
             var utcNow = DateTime.UtcNow;
             var nextId = issuesDatabase.Issues.Count != 0 ? issuesDatabase.Issues.Max(i => i.Id) + 1 : 1;
 
+            int? versionId = null;
+            if (issueCreateDto.VersionId.HasValue)
+            {
+                versionId = issuesDatabase.GetVersion(issueCreateDto.VersionId.Value).Id;
+            }
+
             var newIssue = new DbIssue
             {
                 Id = nextId,
@@ -53,14 +84,15 @@ public sealed class IssuesStorage : IIssuesStorage
                 Description = issueCreateDto.Description,
                 Status = issueCreateDto.Status,
                 CreatedDateTime = utcNow,
-                UpdatedDateTime = utcNow
+                UpdatedDateTime = utcNow,
+                VersionId = versionId
             };
 
             issuesDatabase.Issues.Add(newIssue);
 
             WriteDatabaseFile(issuesDatabase);
 
-            return newIssue.ToReadDto();
+            return newIssue.ToReadDto(issuesDatabase);
         }
     }
 
@@ -69,7 +101,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.Select(i => i.ToReadDto()).ToArray();
+            return issuesDatabase.Issues.Select(i => i.ToReadDto(issuesDatabase)).ToArray();
         }
     }
 
@@ -78,7 +110,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto() ?? throw new IssueNotFoundException();
+            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto(issuesDatabase) ?? throw new IssueNotFoundException();
         }
     }
 
@@ -92,6 +124,12 @@ public sealed class IssuesStorage : IIssuesStorage
 
             var utcNow = DateTime.UtcNow;
 
+            int? versionId = null;
+            if (issueUpdateDto.VersionId.HasValue)
+            {
+                versionId = issuesDatabase.GetVersion(issueUpdateDto.VersionId.Value).Id;
+            }
+
             issueToUpdate = new DbIssue
             {
                 Id = issueToUpdate.Id,
@@ -99,25 +137,88 @@ public sealed class IssuesStorage : IIssuesStorage
                 Description = issueUpdateDto.Description,
                 Status = issueUpdateDto.Status,
                 CreatedDateTime = issueToUpdate.CreatedDateTime,
-                UpdatedDateTime = utcNow
+                UpdatedDateTime = utcNow,
+                VersionId = versionId
             };
 
             issuesDatabase.Issues[index] = issueToUpdate;
 
             WriteDatabaseFile(issuesDatabase);
 
-            return issueToUpdate.ToReadDto();
+            return issueToUpdate.ToReadDto(issuesDatabase);
         }
     }
 
-    public void DeleteIssue(int id)
+    public VersionReadDto CreateVersion(VersionCreateDto versionCreateDto)
     {
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            var issueToDelete = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
-            issuesDatabase.Issues.Remove(issueToDelete);
+
+            if (!issuesDatabase.IsVersionNameUnique(versionCreateDto.Name))
+            {
+                throw new VersionAlreadyExistsException();
+            }
+
+            var nextId = issuesDatabase.Versions.Count != 0 ? issuesDatabase.Versions.Max(i => i.Id) + 1 : 1;
+
+            var newVersion = new DbVersion
+            {
+                Id = nextId,
+                Name = versionCreateDto.Name
+            };
+
+            issuesDatabase.Versions.Add(newVersion);
+
             WriteDatabaseFile(issuesDatabase);
+
+            return newVersion.ToReadDto();
+        }
+    }
+
+    public IReadOnlyCollection<VersionReadDto> GetAllVersions()
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.Versions.Select(i => i.ToReadDto()).ToArray();
+        }
+    }
+
+    public VersionReadDto GetVersion(int id)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.GetVersion(id).ToReadDto();
+        }
+    }
+
+    public VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+
+            if (!issuesDatabase.IsVersionNameUnique(versionUpdateDto.Name))
+            {
+                throw new VersionAlreadyExistsException();
+            }
+
+            var versionToUpdate = issuesDatabase.Versions.SingleOrDefault(i => i.Id == id) ?? throw new VersionNotFoundException();
+            var index = issuesDatabase.Versions.IndexOf(versionToUpdate);
+
+            versionToUpdate = new DbVersion
+            {
+                Id = versionToUpdate.Id,
+                Name = versionUpdateDto.Name
+            };
+
+            issuesDatabase.Versions[index] = versionToUpdate;
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return versionToUpdate.ToReadDto();
         }
     }
 
@@ -137,6 +238,17 @@ public sealed class IssuesStorage : IIssuesStorage
     {
         public int Version { get; init; }
         public required List<DbIssue> Issues { get; init; }
+        public required List<DbVersion> Versions { get; init; }
+
+        public DbVersion GetVersion(int id)
+        {
+            return Versions.SingleOrDefault(v => v.Id == id) ?? throw new VersionNotFoundException();
+        }
+
+        public bool IsVersionNameUnique(string versionName)
+        {
+            return Versions.All(v => v.Name != versionName);
+        }
     }
 
     private sealed class DbIssue
@@ -147,15 +259,29 @@ public sealed class IssuesStorage : IIssuesStorage
         public required string Status { get; init; }
         public required DateTime CreatedDateTime { get; init; }
         public required DateTime UpdatedDateTime { get; init; }
+        public int? VersionId { get; init; }
 
-        public IssueReadDto ToReadDto() => new()
+        public IssueReadDto ToReadDto(IssuesDatabase issuesDatabase) => new()
         {
             Id = Id,
             Title = Title,
             Description = Description,
             Status = Status,
             CreatedDateTime = CreatedDateTime,
-            UpdatedDateTime = UpdatedDateTime
+            UpdatedDateTime = UpdatedDateTime,
+            Version = VersionId.HasValue ? issuesDatabase.GetVersion(VersionId.Value).ToReadDto() : null
+        };
+    }
+
+    private sealed class DbVersion
+    {
+        public required int Id { get; init; }
+        public required string Name { get; init; }
+
+        public VersionReadDto ToReadDto() => new()
+        {
+            Id = Id,
+            Name = Name
         };
     }
 }

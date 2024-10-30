@@ -4,6 +4,7 @@ using Aurora.IssuesService.DataStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Aurora.IssuesService.Host;
 
@@ -29,7 +30,12 @@ public static class Program
                                  throw new InvalidOperationException($"Cannot read env var: {auroraIssuesDbPathEnvVar}");
         }
 
-        builder.Services.AddSingleton<IIssuesStorage>(new IssuesStorage(issuesDatabasePath));
+        builder.Services.AddSingleton<IIssuesStorage>(serviceProvider =>
+        {
+            var logger = serviceProvider.GetService<ILogger<IssuesStorage>>() ??
+                         throw new InvalidOperationException($"Cannot get service: {typeof(ILogger<IssuesStorage>)}.");
+            return new IssuesStorage(issuesDatabasePath, logger);
+        });
 
         var app = builder.Build();
 
@@ -46,6 +52,9 @@ public static class Program
         });
 
         app.MapControllers();
+
+        // Perform database upgrade
+        app.Services.GetService<IIssuesStorage>();
 
         app.Run();
     }

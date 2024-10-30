@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Aurora.IssuesService.DataStore.IntegrationTests;
 
@@ -31,7 +32,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         // Act
-        _ = new IssuesStorage(_temporaryStorageFilePath);
+        _ = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Assert
         var fileExists = File.Exists(_temporaryStorageFilePath);
@@ -43,7 +44,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto = new IssueCreateDto
         {
             Title = "First issue",
@@ -66,11 +67,12 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue.CreatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue.UpdatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue.CreatedDateTime, Is.EqualTo(createdIssue.UpdatedDateTime));
+        Assert.That(createdIssue.Version, Is.Null);
 
         var issuesAfter = issuesStorage.GetAllIssues();
         Assert.That(issuesAfter, Has.Count.EqualTo(1));
-        var issue1 = issuesAfter.Single();
-        Assert.That(issue1, Is.EqualTo(createdIssue));
+        var issue = issuesAfter.Single();
+        Assert.That(issue, Is.EqualTo(createdIssue));
     }
 
     [Test]
@@ -78,7 +80,7 @@ public class IssuesStorageIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto1 = new IssueCreateDto
         {
             Title = "First issue",
@@ -117,6 +119,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue1.CreatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue1.UpdatedDateTime, Is.GreaterThan(startTime));
         Assert.That(createdIssue1.CreatedDateTime, Is.EqualTo(createdIssue1.UpdatedDateTime));
+        Assert.That(createdIssue1.Version, Is.Null);
 
         Assert.That(createdIssue2.Id, Is.EqualTo(2));
         Assert.That(createdIssue2.Title, Is.EqualTo(createDto2.Title));
@@ -125,6 +128,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue2.CreatedDateTime, Is.GreaterThan(createdIssue1.CreatedDateTime));
         Assert.That(createdIssue2.UpdatedDateTime, Is.GreaterThan(createdIssue1.UpdatedDateTime));
         Assert.That(createdIssue2.CreatedDateTime, Is.EqualTo(createdIssue2.UpdatedDateTime));
+        Assert.That(createdIssue2.Version, Is.Null);
 
         Assert.That(createdIssue3.Id, Is.EqualTo(3));
         Assert.That(createdIssue3.Title, Is.EqualTo(createDto3.Title));
@@ -133,6 +137,7 @@ public class IssuesStorageIntegrationTests
         Assert.That(createdIssue3.CreatedDateTime, Is.GreaterThan(createdIssue2.CreatedDateTime));
         Assert.That(createdIssue3.UpdatedDateTime, Is.GreaterThan(createdIssue2.UpdatedDateTime));
         Assert.That(createdIssue3.CreatedDateTime, Is.EqualTo(createdIssue3.UpdatedDateTime));
+        Assert.That(createdIssue3.Version, Is.Null);
 
         var issuesAfter = issuesStorage.GetAllIssues();
         Assert.That(issuesAfter, Has.Count.EqualTo(3));
@@ -148,10 +153,69 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+        var createDto = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open",
+            VersionId = 123
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateIssue(createDto), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
+    public void CreateIssue_ShouldCreateNewIssue_WithVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var createDto = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open",
+            VersionId = createdVersion.Id
+        };
+
+        // Assume
+        var issuesBefore = issuesStorage.GetAllIssues();
+        Assert.That(issuesBefore, Is.Empty);
+
+        // Act
+        var createdIssue = issuesStorage.CreateIssue(createDto);
+
+        // Assert
+        Assert.That(createdIssue.Id, Is.EqualTo(1));
+        Assert.That(createdIssue.Title, Is.EqualTo(createDto.Title));
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        var issuesAfter = issuesStorage.GetAllIssues();
+        Assert.That(issuesAfter, Has.Count.EqualTo(1));
+        var issue = issuesAfter.Single();
+        Assert.That(issue, Is.EqualTo(createdIssue));
+    }
+
+    [Test]
     public void GetAllIssues_ShouldReturnNoIssues_WhenStorageFileDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Act
         var issues = issuesStorage.GetAllIssues();
@@ -164,7 +228,7 @@ public class IssuesStorageIntegrationTests
     public void GetAllIssues_ShouldReturnExistingIssues_WhenStorageFileAlreadyExists()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var createDto1 = new IssueCreateDto
         {
             Title = "First issue",
@@ -191,7 +255,7 @@ public class IssuesStorageIntegrationTests
         var createdIssue3 = issuesStorage.CreateIssue(createDto3);
 
         // Act
-        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
         var allIssues = issuesStorage2.GetAllIssues();
 
         // Assert
@@ -211,7 +275,7 @@ public class IssuesStorageIntegrationTests
     public void GetIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -243,10 +307,10 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void GetIssue_ShouldReturnsIssue_GivenIssueId()
+    public void GetIssue_ShouldReturnIssue_GivenIssueId()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -283,7 +347,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -325,7 +389,7 @@ public class IssuesStorageIntegrationTests
     public void UpdateIssue_ShouldUpdateExistingIssue()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         var createDto1 = new IssueCreateDto
         {
@@ -368,96 +432,557 @@ public class IssuesStorageIntegrationTests
         Assert.That(updatedIssue.Status, Is.EqualTo(updateDto.Status));
         Assert.That(updatedIssue.CreatedDateTime, Is.EqualTo(createdIssue2.CreatedDateTime));
         Assert.That(updatedIssue.UpdatedDateTime, Is.GreaterThan(createdIssue2.UpdatedDateTime));
+        Assert.That(updatedIssue.Version, Is.Null);
 
         var issue2 = issuesStorage.GetIssue(createdIssue2.Id);
         Assert.That(issue2, Is.EqualTo(updatedIssue));
     }
 
     [Test]
-    public void DeleteIssue_ShouldThrowException_GivenIssueIdThatDoesNotExistInStorage()
+    public void UpdateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
-        var createDto1 = new IssueCreateDto
+        var createDto = new IssueCreateDto
         {
-            Title = "First issue",
-            Description = "This is the first issue.",
-            Status = "Open"
-        };
-
-        var createDto2 = new IssueCreateDto
-        {
-            Title = "Second issue",
-            Description = "This is the second issue.",
+            Title = "Issue to update",
+            Description = "This is will be updated.",
             Status = "In Progress"
         };
 
-        var createDto3 = new IssueCreateDto
+        var createdIssue = issuesStorage.CreateIssue(createDto);
+
+        var updateDto = new IssueUpdateDto
         {
-            Title = "Third issue",
-            Description = "This is the third issue.",
-            Status = "Closed"
+            Title = createDto.Title,
+            Description = createDto.Description,
+            Status = createDto.Status,
+            VersionId = 123
         };
-        _ = issuesStorage.CreateIssue(createDto1);
-        _ = issuesStorage.CreateIssue(createDto2);
-        _ = issuesStorage.CreateIssue(createDto3);
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.DeleteIssue(12), Throws.TypeOf<IssueNotFoundException>());
+        Assert.That(() => _ = issuesStorage.UpdateIssue(createdIssue.Id, updateDto), Throws.TypeOf<VersionNotFoundException>());
     }
 
     [Test]
-    public void DeleteIssue_ShouldDeleteExistingIssue()
+    public void UpdateIssue_ShouldSetVersion_GivenIssueWithNoVersion()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
-        var createDto1 = new IssueCreateDto
+        var versionCreateDto = new VersionCreateDto
         {
-            Title = "First issue",
-            Description = "This is the first issue.",
-            Status = "Open"
+            Name = "Version 1"
         };
 
-        var createDto2 = new IssueCreateDto
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var createDto = new IssueCreateDto
         {
-            Title = "Second issue",
-            Description = "This is the second issue.",
+            Title = "Issue to update",
+            Description = "This is will be updated.",
             Status = "In Progress"
         };
 
-        var createDto3 = new IssueCreateDto
+        var createdIssue = issuesStorage.CreateIssue(createDto);
+
+        var updateDto = new IssueUpdateDto
         {
-            Title = "Third issue",
-            Description = "This is the third issue.",
-            Status = "Closed"
+            Title = createDto.Title,
+            Description = createDto.Description,
+            Status = createDto.Status,
+            VersionId = createdVersion.Id
         };
-        var createdIssue1 = issuesStorage.CreateIssue(createDto1);
-        var createdIssue2 = issuesStorage.CreateIssue(createDto2);
-        var createdIssue3 = issuesStorage.CreateIssue(createDto3);
 
         // Assume
-        var issuesBefore = issuesStorage.GetAllIssues();
-        Assert.That(issuesBefore, Has.Count.EqualTo(3));
+        Assert.That(createdIssue.Version, Is.Null);
 
         // Act
-        issuesStorage.DeleteIssue(createdIssue2.Id);
+        var updatedIssue = issuesStorage.UpdateIssue(createdIssue.Id, updateDto);
 
         // Assert
-        var issuesAfter = issuesStorage.GetAllIssues();
-        Assert.That(issuesAfter, Has.Count.EqualTo(2));
-        Assert.That(issuesAfter, Contains.Item(createdIssue1));
-        Assert.That(issuesAfter, Does.Not.Contain(createdIssue2));
-        Assert.That(issuesAfter, Contains.Item(createdIssue3));
+        Assert.That(updatedIssue.Id, Is.EqualTo(createdIssue.Id));
+        Assert.That(updatedIssue.Version, Is.Not.Null);
+        Assert.That(updatedIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(updatedIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        var issue = issuesStorage.GetIssue(createdIssue.Id);
+        Assert.That(issue, Is.EqualTo(updatedIssue));
+    }
+
+    [Test]
+    public void UpdateIssue_ShouldSetNoVersion_GivenIssueWithVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue to update",
+            Description = "This is will be updated.",
+            Status = "In Progress",
+            VersionId = createdVersion.Id
+        };
+
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
+
+        var updateDto = new IssueUpdateDto
+        {
+            Title = issueCreateDto.Title,
+            Description = issueCreateDto.Description,
+            Status = issueCreateDto.Status,
+            VersionId = null
+        };
+
+        // Assume
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        // Act
+        var updatedIssue = issuesStorage.UpdateIssue(createdIssue.Id, updateDto);
+
+        // Assert
+        Assert.That(updatedIssue.Id, Is.EqualTo(createdIssue.Id));
+        Assert.That(updatedIssue.Version, Is.Null);
+
+        var issue = issuesStorage.GetIssue(createdIssue.Id);
+        Assert.That(issue, Is.EqualTo(updatedIssue));
+    }
+
+    [Test]
+    public void UpdateIssue_ShouldSetDifferentVersion_GivenIssueWithVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var createdVersion1 = issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue to update",
+            Description = "This is will be updated.",
+            Status = "In Progress",
+            VersionId = createdVersion1.Id
+        };
+
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
+
+        var updateDto = new IssueUpdateDto
+        {
+            Title = issueCreateDto.Title,
+            Description = issueCreateDto.Description,
+            Status = issueCreateDto.Status,
+            VersionId = createdVersion2.Id
+        };
+
+        // Assume
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion1.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion1.Name));
+
+        // Act
+        var updatedIssue = issuesStorage.UpdateIssue(createdIssue.Id, updateDto);
+
+        // Assert
+        Assert.That(updatedIssue.Id, Is.EqualTo(createdIssue.Id));
+        Assert.That(updatedIssue.Version, Is.Not.Null);
+        Assert.That(updatedIssue.Version.Id, Is.EqualTo(createdVersion2.Id));
+        Assert.That(updatedIssue.Version.Name, Is.EqualTo(createdVersion2.Name));
+
+        var issue = issuesStorage.GetIssue(createdIssue.Id);
+        Assert.That(issue, Is.EqualTo(updatedIssue));
+    }
+
+    [Test]
+    public void CreateVersion_ShouldCreateNewVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        // Assume
+        var versionsBefore = issuesStorage.GetAllVersions();
+        Assert.That(versionsBefore, Is.Empty);
+
+        // Act
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        // Assert
+        Assert.That(createdVersion.Id, Is.EqualTo(1));
+        Assert.That(createdVersion.Name, Is.EqualTo(versionCreateDto.Name));
+
+        var versionsAfter = issuesStorage.GetAllVersions();
+        Assert.That(versionsAfter, Has.Count.EqualTo(1));
+        var version = versionsAfter.Single();
+        Assert.That(version, Is.EqualTo(createdVersion));
+    }
+
+    [Test]
+    public void CreateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        issuesStorage.CreateVersion(versionCreateDto);
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateVersion(versionCreateDto), Throws.TypeOf<VersionAlreadyExistsException>());
+    }
+
+    [Test]
+    public void CreateVersion_ShouldCreateMultipleVersions_WhenCalledMultipleTimes()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        // Assume
+        var versionsBefore = issuesStorage.GetAllVersions();
+        Assert.That(versionsBefore, Is.Empty);
+
+        // Act
+        var createdVersion1 = issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+        var createdVersion3 = issuesStorage.CreateVersion(versionCreateDto3);
+
+        // Assert
+        Assert.That(createdVersion1.Id, Is.EqualTo(1));
+        Assert.That(createdVersion1.Name, Is.EqualTo(versionCreateDto1.Name));
+
+        Assert.That(createdVersion2.Id, Is.EqualTo(2));
+        Assert.That(createdVersion2.Name, Is.EqualTo(versionCreateDto2.Name));
+
+        Assert.That(createdVersion3.Id, Is.EqualTo(3));
+        Assert.That(createdVersion3.Name, Is.EqualTo(versionCreateDto3.Name));
+
+        var versionsAfter = issuesStorage.GetAllVersions();
+        Assert.That(versionsAfter, Has.Count.EqualTo(3));
+
+        var version1 = versionsAfter.Single(v => v.Id == 1);
+        Assert.That(version1, Is.EqualTo(createdVersion1));
+
+        var version2 = versionsAfter.Single(v => v.Id == 2);
+        Assert.That(version2, Is.EqualTo(createdVersion2));
+
+        var version3 = versionsAfter.Single(v => v.Id == 3);
+        Assert.That(version3, Is.EqualTo(createdVersion3));
+    }
+
+    [Test]
+    public void GetAllVersions_ShouldReturnNoVersions_WhenStorageFileDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        // Act
+        var versions = issuesStorage.GetAllVersions();
+
+        // Assert
+        Assert.That(versions, Is.Empty);
+    }
+
+    [Test]
+    public void GetAllVersions_ShouldReturnExistingVersions_WhenStorageFileAlreadyExists()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        var createdVersion1 = issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+        var createdVersion3 = issuesStorage.CreateVersion(versionCreateDto3);
+
+        // Act
+        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+        var allVersions = issuesStorage2.GetAllVersions();
+
+        // Assert
+        Assert.That(allVersions, Has.Count.EqualTo(3));
+
+        var version1 = allVersions.Single(v => v.Id == 1);
+        Assert.That(version1, Is.EqualTo(createdVersion1));
+
+        var version2 = allVersions.Single(v => v.Id == 2);
+        Assert.That(version2, Is.EqualTo(createdVersion2));
+
+        var version3 = allVersions.Single(v => v.Id == 3);
+        Assert.That(version3, Is.EqualTo(createdVersion3));
+    }
+
+    [Test]
+    public void GetVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        _ = issuesStorage.CreateVersion(versionCreateDto1);
+        _ = issuesStorage.CreateVersion(versionCreateDto2);
+        _ = issuesStorage.CreateVersion(versionCreateDto3);
+
+        // Act
+        // Assert
+        Assert.That(() => _ = issuesStorage.GetVersion(12), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
+    public void GetVersion_ShouldReturnVersion_GivenVersionId()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        _ = issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+        _ = issuesStorage.CreateVersion(versionCreateDto3);
+
+        // Act
+        var version2 = issuesStorage.GetVersion(createdVersion2.Id);
+
+        // Assert
+        Assert.That(version2, Is.EqualTo(createdVersion2));
+    }
+
+    [Test]
+    public void UpdateVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        _ = issuesStorage.CreateVersion(versionCreateDto1);
+        _ = issuesStorage.CreateVersion(versionCreateDto2);
+        _ = issuesStorage.CreateVersion(versionCreateDto3);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Version that does not exist"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => _ = issuesStorage.UpdateVersion(12, versionUpdateDto), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
+    public void UpdateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Version 1"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.UpdateVersion(createdVersion2.Id, versionUpdateDto), Throws.TypeOf<VersionAlreadyExistsException>());
+    }
+
+    [Test]
+    public void UpdateVersion_ShouldUpdateExistingVersion()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto1 = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var versionCreateDto2 = new VersionCreateDto
+        {
+            Name = "Version 2"
+        };
+
+        var versionCreateDto3 = new VersionCreateDto
+        {
+            Name = "Version 3"
+        };
+
+        _ = issuesStorage.CreateVersion(versionCreateDto1);
+        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
+        _ = issuesStorage.CreateVersion(versionCreateDto3);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Updated version 2"
+        };
+
+        // Act
+        var updatedVersion = issuesStorage.UpdateVersion(createdVersion2.Id, versionUpdateDto);
+
+        // Assert
+        Assert.That(updatedVersion.Id, Is.EqualTo(createdVersion2.Id));
+        Assert.That(updatedVersion.Name, Is.EqualTo(versionUpdateDto.Name));
+
+        var version2 = issuesStorage.GetVersion(createdVersion2.Id);
+        Assert.That(version2, Is.EqualTo(updatedVersion));
+    }
+
+    [Test]
+    public void VersionNameAssignedToIssueIsUpdated_WhenVersionIsUpdated()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var versionCreateDto = new VersionCreateDto
+        {
+            Name = "Version 1"
+        };
+
+        var createdVersion = issuesStorage.CreateVersion(versionCreateDto);
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue title",
+            Description = "Issue description.",
+            Status = "Open",
+            VersionId = createdVersion.Id
+        };
+
+        var createdIssue = issuesStorage.CreateIssue(issueCreateDto);
+
+        var versionUpdateDto = new VersionUpdateDto
+        {
+            Name = "Version 2"
+        };
+
+        // Assume
+        Assert.That(createdIssue.Version, Is.Not.Null);
+        Assert.That(createdIssue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(createdIssue.Version.Name, Is.EqualTo(createdVersion.Name));
+
+        // Act
+        issuesStorage.UpdateVersion(createdVersion.Id, versionUpdateDto);
+
+        // Assert
+        var issue = issuesStorage.GetIssue(createdIssue.Id);
+        Assert.That(issue.Version, Is.Not.Null);
+        Assert.That(issue.Version.Id, Is.EqualTo(createdVersion.Id));
+        Assert.That(issue.Version.Name, Is.EqualTo(versionUpdateDto.Name));
     }
 
     [Test]
     public void StorageAccessIsThreadSafe()
     {
         // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath);
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
 
         // Act
         var task1 = Task.Run(() =>

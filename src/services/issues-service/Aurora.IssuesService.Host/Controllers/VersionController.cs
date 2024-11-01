@@ -84,18 +84,26 @@ public sealed class VersionController : ControllerBase
     }
 
     [HttpPost]
-    public Results<BadRequest, Created<CreateVersionResponse>> Create(CreateVersionRequest createVersionRequest)
+    public Results<BadRequest<ValidationProblemDetails>, Created<CreateVersionResponse>> Create(CreateVersionRequest createVersionRequest)
     {
-        var versionCreateDto = new VersionCreateDto
+        try
         {
-            Name = createVersionRequest.Name
-        };
+            var versionCreateDto = new VersionCreateDto
+            {
+                Name = createVersionRequest.Name
+            };
 
-        var versionReadDto = _issuesStorage.CreateVersion(versionCreateDto);
+            var versionReadDto = _issuesStorage.CreateVersion(versionCreateDto);
 
-        var uri = Url.Action(nameof(Get), new { id = versionReadDto.Id });
-        var createVersionResponse = new CreateVersionResponse { Id = versionReadDto.Id };
-        return TypedResults.Created(uri, createVersionResponse);
+            var uri = Url.Action(nameof(Get), new { id = versionReadDto.Id });
+            var createVersionResponse = new CreateVersionResponse { Id = versionReadDto.Id };
+            return TypedResults.Created(uri, createVersionResponse);
+        }
+        catch (VersionAlreadyExistsException)
+        {
+            ModelState.AddModelError("Name", "TODO");
+            return TypedResults.BadRequest(ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState));
+        }
     }
 
     [HttpPut("{id:int}")]

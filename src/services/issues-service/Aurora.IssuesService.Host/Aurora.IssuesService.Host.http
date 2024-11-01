@@ -67,11 +67,45 @@ Content-Type: application/json
 
 ###
 
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/versions
+Content-Type: application/json
+
+{
+}
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/versions
+Content-Type: application/json
+
+{
+  "name": "Version - Diplicate"
+}
+
+###
+
 PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
 Content-Type: application/json
 
 {
   "name": "Version {{$guid}}"
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/0
+Content-Type: application/json
+
+{
+  "name": "Version {{$guid}}"
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
+Content-Type: application/json
+
+{
 }
 
 ###

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Aurora.IssuesService.DataStore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -46,6 +48,20 @@ public sealed class VersionController : ControllerBase
     public VersionController(IIssuesStorage issuesStorage)
     {
         _issuesStorage = issuesStorage;
+    }
+
+    [HttpGet]
+    public IEnumerable<VersionDetailsResponse> GetAll()
+    {
+        var allVersions = _issuesStorage.GetAllVersions();
+
+        var result = allVersions.Select(v => new VersionDetailsResponse
+        {
+            Id = v.Id,
+            Name = v.Name
+        });
+
+        return result;
     }
 
     [HttpGet("{id:int}")]

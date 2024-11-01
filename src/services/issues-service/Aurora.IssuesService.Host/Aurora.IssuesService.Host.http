@@ -46,6 +46,10 @@ Content-Type: application/json
 
 ###
 
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/versions
+
+###
+
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
 
 ###

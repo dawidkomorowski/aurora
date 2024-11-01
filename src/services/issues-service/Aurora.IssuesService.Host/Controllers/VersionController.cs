@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Aurora.IssuesService.DataStore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -28,6 +29,12 @@ public sealed class CreateVersionRequest
 public sealed class CreateVersionResponse
 {
     public required int Id { get; init; }
+}
+
+public sealed class UpdateVersionRequest
+{
+    [Required(AllowEmptyStrings = false)]
+    public string Name { get; set; } = string.Empty;
 }
 
 [ApiController]
@@ -73,5 +80,30 @@ public sealed class VersionController : ControllerBase
         var uri = Url.Action(nameof(Get), new { id = versionReadDto.Id });
         var createVersionResponse = new CreateVersionResponse { Id = versionReadDto.Id };
         return TypedResults.Created(uri, createVersionResponse);
+    }
+
+    [HttpPut("{id:int}")]
+    public Results<NotFound, BadRequest, Ok<VersionDetailsResponse>> Update(int id, UpdateVersionRequest updateVersionRequest)
+    {
+        try
+        {
+            var versionUpdateDto = new VersionUpdateDto
+            {
+                Name = updateVersionRequest.Name
+            };
+
+            var versionReadDto = _issuesStorage.UpdateVersion(id, versionUpdateDto);
+            var versionDetailsResponse = new VersionDetailsResponse
+            {
+                Id = versionReadDto.Id,
+                Name = versionReadDto.Name
+            };
+
+            return TypedResults.Ok(versionDetailsResponse);
+        }
+        catch (VersionNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
     }
 }

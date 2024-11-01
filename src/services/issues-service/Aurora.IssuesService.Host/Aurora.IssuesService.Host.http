@@ -62,3 +62,12 @@ Content-Type: application/json
 }
 
 ###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
+Content-Type: application/json
+
+{
+  "name": "Version {{$guid}}"
+}
+
+###

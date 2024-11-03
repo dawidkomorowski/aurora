@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Aurora.IssuesService.DataStore;
@@ -101,13 +100,12 @@ public sealed class VersionController : ControllerBase
         }
         catch (VersionAlreadyExistsException)
         {
-            ModelState.AddModelError("Name", "TODO");
-            return TypedResults.BadRequest(ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState));
+            return BadRequest_VersionAlreadyExists();
         }
     }
 
     [HttpPut("{id:int}")]
-    public Results<NotFound, BadRequest, Ok<VersionDetailsResponse>> Update(int id, UpdateVersionRequest updateVersionRequest)
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Ok<VersionDetailsResponse>> Update(int id, UpdateVersionRequest updateVersionRequest)
     {
         try
         {
@@ -125,9 +123,19 @@ public sealed class VersionController : ControllerBase
 
             return TypedResults.Ok(versionDetailsResponse);
         }
+        catch (VersionAlreadyExistsException)
+        {
+            return BadRequest_VersionAlreadyExists();
+        }
         catch (VersionNotFoundException)
         {
             return TypedResults.NotFound();
         }
+    }
+
+    private BadRequest<ValidationProblemDetails> BadRequest_VersionAlreadyExists()
+    {
+        ModelState.AddModelError("Name", "Version with the same name already exists.");
+        return TypedResults.BadRequest(ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState));
     }
 }

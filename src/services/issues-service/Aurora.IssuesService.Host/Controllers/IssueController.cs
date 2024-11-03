@@ -101,7 +101,7 @@ public sealed class IssueController : ControllerBase
     }
 
     [HttpPost]
-    public Results<BadRequest, Created<CreateIssueResponse>> Create(CreateIssueRequest createIssueRequest)
+    public Results<BadRequest<ValidationProblemDetails>, Created<CreateIssueResponse>> Create(CreateIssueRequest createIssueRequest)
     {
         var issueCreateDto = new IssueCreateDto
         {
@@ -118,7 +118,7 @@ public sealed class IssueController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public Results<NotFound, BadRequest, Ok<IssueDetailsResponse>> Update(int id, UpdateIssueRequest updateIssueRequest)
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Ok<IssueDetailsResponse>> Update(int id, UpdateIssueRequest updateIssueRequest)
     {
         try
         {

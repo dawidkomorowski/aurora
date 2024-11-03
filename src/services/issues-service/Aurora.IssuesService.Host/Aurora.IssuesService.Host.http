@@ -1,5 +1,7 @@
 @Aurora.IssuesService.Host_HostAddress = http://localhost:7201
 
+### Issues
+
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 
 ###
@@ -44,7 +46,7 @@ Content-Type: application/json
   "status": "Closed"
 }
 
-###
+### Versions
 
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/versions
 
@@ -84,6 +86,24 @@ Content-Type: application/json
 
 ###
 
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/versions
+Content-Type: application/json
+
+{
+  "name": "   "
+}
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/versions
+Content-Type: application/json
+
+{
+  "name": "   Version {{$guid}}   "
+}
+
+###
+
 PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
 Content-Type: application/json
 
@@ -115,6 +135,24 @@ Content-Type: application/json
 
 {
   "name": "Version - Duplicate"
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/1
+Content-Type: application/json
+
+{
+  "name": "   "
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/versions/2
+Content-Type: application/json
+
+{
+  "name": "   Version {{$guid}}   "
 }
 
 ###

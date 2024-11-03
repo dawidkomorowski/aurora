@@ -8,13 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
 
-// TODO Issues Service needs to provide API for creating and editing Versions.
-// TODO - API for creating new versions is introduced
-// TODO - API for editing existing versions is introduced
-// TODO - Version must be non empty string.
-// TODO - Version must be non white space only string.
-// TODO - Version string must be trimmed from white spaces.
-
 public sealed class VersionDetailsResponse
 {
     public required int Id { get; init; }
@@ -89,7 +82,7 @@ public sealed class VersionController : ControllerBase
         {
             var versionCreateDto = new VersionCreateDto
             {
-                Name = createVersionRequest.Name
+                Name = createVersionRequest.Name.Trim()
             };
 
             var versionReadDto = _issuesStorage.CreateVersion(versionCreateDto);
@@ -111,7 +104,7 @@ public sealed class VersionController : ControllerBase
         {
             var versionUpdateDto = new VersionUpdateDto
             {
-                Name = updateVersionRequest.Name
+                Name = updateVersionRequest.Name.Trim()
             };
 
             var versionReadDto = _issuesStorage.UpdateVersion(id, versionUpdateDto);

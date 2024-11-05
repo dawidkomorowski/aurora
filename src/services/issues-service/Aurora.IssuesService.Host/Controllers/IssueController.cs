@@ -57,11 +57,11 @@ public sealed class UpdateIssueRequest
 
 [ApiController]
 [Route("api/issues")]
-public class IssuesController : ControllerBase
+public sealed class IssueController : ControllerBase
 {
     private readonly IIssuesStorage _issuesStorage;
 
-    public IssuesController(IIssuesStorage issuesStorage)
+    public IssueController(IIssuesStorage issuesStorage)
     {
         _issuesStorage = issuesStorage;
     }
@@ -101,7 +101,7 @@ public class IssuesController : ControllerBase
     }
 
     [HttpPost]
-    public Results<BadRequest, Created<CreateIssueResponse>> Create(CreateIssueRequest createIssueRequest)
+    public Results<BadRequest<ValidationProblemDetails>, Created<CreateIssueResponse>> Create(CreateIssueRequest createIssueRequest)
     {
         var issueCreateDto = new IssueCreateDto
         {
@@ -118,7 +118,7 @@ public class IssuesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public Results<NotFound, BadRequest, Ok<IssueDetailsResponse>> Update(int id, UpdateIssueRequest updateIssueRequest)
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Ok<IssueDetailsResponse>> Update(int id, UpdateIssueRequest updateIssueRequest)
     {
         try
         {

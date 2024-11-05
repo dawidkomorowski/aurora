@@ -7,11 +7,11 @@ export function CreateIssueView() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
-    function handleTitleChange(event) {
+    function handleTitleInput(event) {
         setTitle(event.target.value);
     }
 
-    function handleDescriptionChange(event) {
+    function handleDescriptionInput(event) {
         setDescription(event.target.value);
     }
 
@@ -28,12 +28,12 @@ export function CreateIssueView() {
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
                 <div><strong>Title</strong></div>
                 <div style={{ paddingRight: "10px" }}>
-                    <input type="text" value={title} onChange={handleTitleChange} style={{ width: "100%" }} />
+                    <input type="text" value={title} onInput={handleTitleInput} style={{ width: "100%" }} />
                 </div>
                 <br />
                 <div><strong>Description</strong></div>
                 <div style={{ paddingRight: "10px" }}>
-                    <textarea value={description} onChange={handleDescriptionChange} style={{ width: "100%", height: "500px", resize: "none" }} />
+                    <textarea value={description} onInput={handleDescriptionInput} style={{ width: "100%", height: "500px", resize: "none" }} />
                 </div>
                 <div style={{ marginTop: "20px", float: "right" }}>
                     <button onClick={handleCreateButtonClick}>Create</button>

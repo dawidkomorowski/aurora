@@ -9,6 +9,7 @@ export function RootLayout() {
                 <nav>
                     <ul style={{ listStyleType: "none", margin: "0px", padding: "0px" }}>
                         <NavigationBarItem title="Issue Explorer" to="/issue/explorer" />
+                        <NavigationBarItem title="Settings" to="/settings" />
                         <NavigationBarItem title="Create Issue" to="/issue/create" />
                     </ul>
                 </nav>

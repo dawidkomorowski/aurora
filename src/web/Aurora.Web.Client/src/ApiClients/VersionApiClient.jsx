@@ -1,4 +1,4 @@
-import { ApiValidationError } from "./ApiValidationError";
+import { ApiClient } from "./ApiClient";
 
 export class VersionApiClient {
     static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
@@ -6,13 +6,7 @@ export class VersionApiClient {
     static getAll() {
         let uri = `${this.#issuesServiceUrl}/versions`;
 
-        return fetch(uri).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(uri);
     }
 
     static create(name) {
@@ -28,13 +22,7 @@ export class VersionApiClient {
             }
         };
 
-        return fetch(`${this.#issuesServiceUrl}/versions`, requestInit).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/versions`, requestInit);
     }
 
     static update(id, name) {
@@ -50,18 +38,7 @@ export class VersionApiClient {
             }
         };
 
-        return fetch(`${this.#issuesServiceUrl}/versions/${id}`, requestInit).then(async response => {
-            if (!response.ok) {
-                const errorResponse = await response.json();
-
-                if (ApiValidationError.isValidationError(errorResponse)) {
-                    throw new ApiValidationError(errorResponse);
-                }
-
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/versions/${id}`, requestInit);
     }
 }
+

@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { VersionNameValidator } from "./VersionNameValidator";
 import { VersionValidationErrorPresenter } from "./VersionValidationErrorPresenter";
+import { VersionApiClient } from "../ApiClients/VersionApiClient";
+import { ApiValidationError } from "../ApiClients/ApiValidationError";
 
-export function NewVersionComponent({ onCreate }) {
+export function NewVersionComponent({ onRefreshRequested }) {
     const [newVersionName, setNewVersionName] = useState("");
     const [validationErrors, setValidationErrors] = useState([]);
 
@@ -16,8 +18,17 @@ export function NewVersionComponent({ onCreate }) {
     }
 
     function handleCreateButtonClick() {
-        onCreate(newVersionName);
-        setNewVersionName("");
+        VersionApiClient.create(newVersionName).then(() => {
+            onRefreshRequested();
+            setNewVersionName("");
+        }).catch(error => {
+            if (error instanceof ApiValidationError) {
+                setValidationErrors([...validationErrors, ...error.errorMessages]);
+            }
+            else {
+                console.error(error);
+            }
+        });
     }
 
     const hasValidationErrors = validationErrors.length != 0;

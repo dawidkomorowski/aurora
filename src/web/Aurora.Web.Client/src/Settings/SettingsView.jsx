@@ -18,14 +18,6 @@ export function SettingsView() {
         });
     }
 
-    function onCreateVersion(versionName) {
-        VersionApiClient.create(versionName).then(() => {
-            refreshVersions();
-        }).catch(error => {
-            console.error(error)
-        });
-    }
-
     const versionItems = versions.map(v => {
         return (
             <VersionListItem key={v.id} id={v.id} name={v.name} onRefreshRequested={refreshVersions} />
@@ -45,7 +37,7 @@ export function SettingsView() {
                 <div>
                     {versionItems}
                 </div>
-                <NewVersionComponent onCreate={onCreateVersion} />
+                <NewVersionComponent onRefreshRequested={refreshVersions} />
             </div>
         </div >
     );

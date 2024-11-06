@@ -1,3 +1,5 @@
+import { ApiClient } from "./ApiClient";
+
 export class IssueApiClient {
     static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
 
@@ -8,23 +10,11 @@ export class IssueApiClient {
             uri = `${uri}?status=${encodeURIComponent(filters.status)}`;
         }
 
-        return fetch(uri).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(uri);
     }
 
     static get(id) {
-        return fetch(`${this.#issuesServiceUrl}/issues/${id}`).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${id}`);
     }
 
     static create(title, description) {
@@ -41,13 +31,7 @@ export class IssueApiClient {
             }
         };
 
-        return fetch(`${this.#issuesServiceUrl}/issues`, requestInit).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/issues`, requestInit);
     }
 
     static update(id, title, description, status) {
@@ -65,13 +49,7 @@ export class IssueApiClient {
             }
         };
 
-        return fetch(`${this.#issuesServiceUrl}/issues/${id}`, requestInit).then(response => {
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            return response.json();
-        });
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${id}`, requestInit);
     }
 }
 

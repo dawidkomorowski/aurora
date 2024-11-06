@@ -29,7 +29,7 @@ export function VersionItem({ id, name }) {
     else {
         content =
             <>
-                <div>{id} {versionName}</div>
+                <input value={versionName} disabled></input>
                 <div style={{ marginLeft: "5px" }}>
                     <button onClick={handleEditButtonClick}>Edit</button>
                 </div>

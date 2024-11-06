@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { VersionItem } from "./VersionItem";
+import { NewVersionComponent } from "./NewVersionComponent";
 
 export function SettingsView() {
     const [versions, setVersions] = useState([]);
-    const [newVersionName, setNewVersionName] = useState("");
 
     useEffect(() => {
         setVersions([
@@ -22,20 +22,15 @@ export function SettingsView() {
         ]);
     }, [])
 
-    function handleNewVersionInput(event) {
-        setNewVersionName(event.target.value);
-    }
-
-    function handleCreateButtonClick() {
+    function onCreateVersion(versionName) {
         const newVersion = {
             id: Math.round(Math.random() * 1000000),
-            name: newVersionName
+            name: versionName
         }
         setVersions([...versions, newVersion]);
-        setNewVersionName("");
     }
 
-    var versionItems = versions.map(v => {
+    const versionItems = versions.map(v => {
         return (
             <VersionItem key={v.id} id={v.id} name={v.name} />
         );
@@ -54,10 +49,7 @@ export function SettingsView() {
                 <div>
                     {versionItems}
                 </div>
-                <div style={{ marginTop: "5px" }}>
-                    <input type="text" value={newVersionName} onInput={handleNewVersionInput} style={{ marginRight: "5px" }}></input>
-                    <button onClick={handleCreateButtonClick}>Create</button>
-                </div>
+                <NewVersionComponent onCreate={onCreateVersion} />
             </div>
         </div >
     );

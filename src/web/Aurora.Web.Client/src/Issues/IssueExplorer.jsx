@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
-import { IssuesServiceClient } from "./IssuesServiceClient"
+import { IssueApiClient } from "../ApiClients/IssueApiClient";
 
 export function IssueExplorer() {
     const [statusFilter, setStatusFilter] = useState("");
@@ -11,14 +11,14 @@ export function IssueExplorer() {
             status: statusFilter || null
         };
 
-        IssuesServiceClient.getAll(filters).then(responseData => {
+        IssueApiClient.getAll(filters).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error)
         });
     }, [statusFilter]);
 
-    function handleStatusFilterChange(event) {
+    function handleStatusFilterInput(event) {
         setStatusFilter(event.target.value);
     }
 
@@ -28,7 +28,7 @@ export function IssueExplorer() {
                 <div style={{ margin: "10px" }}>
                     <strong>Status</strong>
                 </div>
-                <select value={statusFilter} onChange={handleStatusFilterChange} style={{ width: "200px" }}>
+                <select value={statusFilter} onInput={handleStatusFilterInput} style={{ width: "200px" }}>
                     <option value="">All</option>
                     <option value="Open">Open</option>
                     <option value="In Progress">In Progress</option>

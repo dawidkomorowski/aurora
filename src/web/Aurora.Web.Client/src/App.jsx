@@ -4,6 +4,7 @@ import { RootLayout } from "./RootLayout/RootLayout"
 import { NotFoundView } from "./RootLayout/NotFoundView"
 import { CreateIssueView } from "./Issues/CreateIssueView"
 import { IssueDetailsView } from "./Issues/IssueDetailsView"
+import { SettingsView } from "./Settings/SettingsView"
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="issue/explorer" element={<IssueExplorer />} />
           <Route path="issue/create" element={<CreateIssueView />} />
           <Route path="issue/:issueId" element={<IssueDetailsView />} />
+          <Route path="settings" element={<SettingsView />} />
           <Route path="*" element={<NotFoundView />} />
         </Route>
       </Routes>

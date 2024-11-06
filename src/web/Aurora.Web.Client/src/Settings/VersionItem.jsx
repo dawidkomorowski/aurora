@@ -17,9 +17,8 @@ export function VersionItem({ id, name, onRefreshRequested }) {
     }
 
     function handleSaveButtonClick() {
-        setEditMode(false);
-
         VersionApiClient.update(id, versionName).then(() => {
+            setEditMode(false);
             onRefreshRequested();
         }).catch(error => {
             console.error(error)

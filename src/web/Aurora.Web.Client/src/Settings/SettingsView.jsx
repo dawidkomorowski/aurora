@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { VersionItem } from "./VersionItem";
+import { VersionListItem } from "./VersionListItem";
 import { NewVersionComponent } from "./NewVersionComponent";
 import { VersionApiClient } from "../ApiClients/VersionApiClient";
 
@@ -28,7 +28,7 @@ export function SettingsView() {
 
     const versionItems = versions.map(v => {
         return (
-            <VersionItem key={v.id} id={v.id} name={v.name} onRefreshRequested={refreshVersions} />
+            <VersionListItem key={v.id} id={v.id} name={v.name} onRefreshRequested={refreshVersions} />
         );
     });
 

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { VersionNameValidator } from "./VersionNameValidator";
 import { VersionValidationErrorPresenter } from "./VersionValidationErrorPresenter";
 import { VersionApiClient } from "../ApiClients/VersionApiClient";
+import { ApiValidationError } from "../ApiClients/ApiValidationError";
 
-export function VersionItem({ id, name, onRefreshRequested }) {
+export function VersionListItem({ id, name, onRefreshRequested }) {
     const [editMode, setEditMode] = useState(false);
     const [versionName, setVersionName] = useState(name);
     const [validationErrors, setValidationErrors] = useState([]);
@@ -21,11 +22,17 @@ export function VersionItem({ id, name, onRefreshRequested }) {
             setEditMode(false);
             onRefreshRequested();
         }).catch(error => {
-            console.error(error)
+            if (error instanceof ApiValidationError) {
+                setValidationErrors([...validationErrors, ...error.errorMessages]);
+            }
+            else {
+                console.error(error);
+            }
         });
     }
 
     function handleCancelButtonClick() {
+        setValidationErrors(VersionNameValidator.validate(name));
         setVersionName(name);
         setEditMode(false);
     }

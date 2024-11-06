@@ -1,3 +1,4 @@
+import { ApiValidationError } from "./ApiValidationError";
 
 export class VersionApiClient {
     static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
@@ -49,8 +50,14 @@ export class VersionApiClient {
             }
         };
 
-        return fetch(`${this.#issuesServiceUrl}/versions/${id}`, requestInit).then(response => {
+        return fetch(`${this.#issuesServiceUrl}/versions/${id}`, requestInit).then(async response => {
             if (!response.ok) {
+                const errorResponse = await response.json();
+
+                if (ApiValidationError.isValidationError(errorResponse)) {
+                    throw new ApiValidationError(errorResponse);
+                }
+
                 throw new Error(`Response status: ${response.status}`);
             }
 

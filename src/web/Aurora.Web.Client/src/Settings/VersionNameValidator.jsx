@@ -10,3 +10,4 @@ export class VersionNameValidator {
         return validationErrors;
     }
 }
+

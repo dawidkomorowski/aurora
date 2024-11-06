@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { VersionNameValidator } from "./VersionNameValidator";
 import { VersionValidationErrorPresenter } from "./VersionValidationErrorPresenter";
 
-export function VersionItem({ id, name }) {
+export function VersionItem({ id, name, onRefreshRequested }) {
     const [editMode, setEditMode] = useState(false);
     const [versionName, setVersionName] = useState(name);
     const [validationErrors, setValidationErrors] = useState([]);
@@ -16,6 +16,12 @@ export function VersionItem({ id, name }) {
     }
 
     function handleSaveButtonClick() {
+        setEditMode(false);
+        onRefreshRequested();
+    }
+
+    function handleCancelButtonClick() {
+        setVersionName(name);
         setEditMode(false);
     }
 
@@ -32,6 +38,9 @@ export function VersionItem({ id, name }) {
                 <input value={versionName} onInput={handleVersionNameInput}></input>
                 <div style={{ marginLeft: "5px" }}>
                     <button onClick={handleSaveButtonClick} disabled={hasValidationErrors}>Save</button>
+                </div>
+                <div style={{ marginLeft: "5px" }}>
+                    <button onClick={handleCancelButtonClick}>Cancel</button>
                 </div>
                 <VersionValidationErrorPresenter validationErrors={validationErrors} />
             </>

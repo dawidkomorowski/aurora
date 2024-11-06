@@ -22,6 +22,10 @@ export function SettingsView() {
         ]);
     }, [])
 
+    function refreshVersions() {
+
+    }
+
     function onCreateVersion(versionName) {
         const newVersion = {
             id: Math.round(Math.random() * 1000000),
@@ -32,7 +36,7 @@ export function SettingsView() {
 
     const versionItems = versions.map(v => {
         return (
-            <VersionItem key={v.id} id={v.id} name={v.name} />
+            <VersionItem key={v.id} id={v.id} name={v.name} onRefreshRequested={refreshVersions} />
         );
     });
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
-import { IssuesServiceClient } from "./IssuesServiceClient"
+import { IssueApiClient } from "../ApiClients/IssueApiClient";
 
 export function IssueExplorer() {
     const [statusFilter, setStatusFilter] = useState("");
@@ -11,7 +11,7 @@ export function IssueExplorer() {
             status: statusFilter || null
         };
 
-        IssuesServiceClient.getAll(filters).then(responseData => {
+        IssueApiClient.getAll(filters).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error)

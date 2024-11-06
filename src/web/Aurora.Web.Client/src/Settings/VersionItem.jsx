@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { VersionNameValidator } from "./VersionNameValidator";
 import { VersionValidationErrorPresenter } from "./VersionValidationErrorPresenter";
+import { VersionApiClient } from "../ApiClients/VersionApiClient";
 
 export function VersionItem({ id, name, onRefreshRequested }) {
     const [editMode, setEditMode] = useState(false);
@@ -17,7 +18,12 @@ export function VersionItem({ id, name, onRefreshRequested }) {
 
     function handleSaveButtonClick() {
         setEditMode(false);
-        onRefreshRequested();
+
+        VersionApiClient.update(id, versionName).then(() => {
+            onRefreshRequested();
+        }).catch(error => {
+            console.error(error)
+        });
     }
 
     function handleCancelButtonClick() {

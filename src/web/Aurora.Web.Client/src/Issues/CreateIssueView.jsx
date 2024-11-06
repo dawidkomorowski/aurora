@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { IssuesServiceClient } from "./IssuesServiceClient";
 import { useNavigate } from "react-router-dom";
+import { IssueApiClient } from "../ApiClients/IssueApiClient";
 
 export function CreateIssueView() {
     const navigate = useNavigate();
@@ -16,7 +16,7 @@ export function CreateIssueView() {
     }
 
     function handleCreateButtonClick() {
-        IssuesServiceClient.create(title, description).then(responseData => {
+        IssueApiClient.create(title, description).then(responseData => {
             navigate(`/issue/${responseData.id}`);
         }).catch(error => {
             console.error(error);

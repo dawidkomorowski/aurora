@@ -1,4 +1,4 @@
-export class IssuesServiceClient {
+export class IssueApiClient {
     static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
 
     static getAll(filters) {
@@ -31,7 +31,7 @@ export class IssuesServiceClient {
         const createIssueRequest = {
             title: title,
             description: description
-        }
+        };
 
         const requestInit = {
             method: "POST",
@@ -51,15 +51,15 @@ export class IssuesServiceClient {
     }
 
     static update(id, title, description, status) {
-        const createIssueRequest = {
+        const updateIssueRequest = {
             title: title,
             description: description,
             status: status
-        }
+        };
 
         const requestInit = {
             method: "PUT",
-            body: JSON.stringify(createIssueRequest),
+            body: JSON.stringify(updateIssueRequest),
             headers: {
                 "Content-Type": "application/json",
             }
@@ -74,3 +74,4 @@ export class IssuesServiceClient {
         });
     }
 }
+

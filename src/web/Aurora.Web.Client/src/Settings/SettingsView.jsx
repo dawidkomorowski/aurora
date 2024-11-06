@@ -1,37 +1,29 @@
 import { useEffect, useState } from "react";
 import { VersionItem } from "./VersionItem";
 import { NewVersionComponent } from "./NewVersionComponent";
+import { VersionApiClient } from "../ApiClients/VersionApiClient";
 
 export function SettingsView() {
     const [versions, setVersions] = useState([]);
 
     useEffect(() => {
-        setVersions([
-            {
-                id: 1,
-                name: "Version 1"
-            },
-            {
-                id: 2,
-                name: "Version 2"
-            },
-            {
-                id: 3,
-                name: "Version 3"
-            }
-        ]);
+        refreshVersions();
     }, [])
 
     function refreshVersions() {
-
+        VersionApiClient.getAll().then(responseData => {
+            setVersions(responseData);
+        }).catch(error => {
+            console.error(error)
+        });
     }
 
     function onCreateVersion(versionName) {
-        const newVersion = {
-            id: Math.round(Math.random() * 1000000),
-            name: versionName
-        }
-        setVersions([...versions, newVersion]);
+        VersionApiClient.create(versionName).then(() => {
+            refreshVersions();
+        }).catch(error => {
+            console.error(error)
+        });
     }
 
     const versionItems = versions.map(v => {

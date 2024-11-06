@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { IssuesServiceClient } from "./IssuesServiceClient";
+import { IssueApiClient } from "../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
 
@@ -10,7 +10,7 @@ export function IssueDetailsView() {
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        IssuesServiceClient.get(issueId).then(responseData => {
+        IssueApiClient.get(issueId).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error);
@@ -22,7 +22,7 @@ export function IssueDetailsView() {
     }
 
     function handleSaveButtonClick() {
-        IssuesServiceClient.update(data.id, data.title, data.description, data.status).then(responseData => {
+        IssueApiClient.update(data.id, data.title, data.description, data.status).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error);

@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
 
+// TODO Acceptance Criteria:
+// TODO - API for creating an issue should allow to specify version field
+// TODO - API for editing an issue should allow to specify version field
+// TODO - Both APIs should accept version value `null` meaning that no version is set for an issue.If version is already set then sending `null` would mean to unassign existing version and set no version. 
+
 public sealed class GetAllFilters
 {
     public string? Status { get; set; }

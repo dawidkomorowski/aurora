@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IssueApiClient } from "../ApiClients/IssueApiClient";
-
-// TODO Acceptance Criteria:
-// TODO - In Create Issue view there is a Version field.
-// TODO - In Create Issue view a Version field is empty by default meaning no version assigned.
-// TODO - In Create Issue view a Version field can be set by choosing one of predefined options from a drop down. Values are the ones defined in settings.
-// TODO - In Create Issue view a Version field can be set to empty by choosing appropriate option from a drop down.
+import { NoVersion, VersionSelect } from "./VersionSelect";
 
 export function CreateIssueView() {
     const navigate = useNavigate();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [version, setVersion] = useState(NoVersion);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);
@@ -22,7 +18,8 @@ export function CreateIssueView() {
     }
 
     function handleCreateButtonClick() {
-        IssueApiClient.create(title, description).then(responseData => {
+        const versionId = version.id === NoVersion.id ? null : version.id;
+        IssueApiClient.create(title, description, versionId).then(responseData => {
             navigate(`/issue/${responseData.id}`);
         }).catch(error => {
             console.error(error);
@@ -40,6 +37,9 @@ export function CreateIssueView() {
                 <div><strong>Description</strong></div>
                 <div style={{ paddingRight: "10px" }}>
                     <textarea value={description} onInput={handleDescriptionInput} style={{ width: "100%", height: "500px", resize: "none" }} />
+                </div>
+                <div style={{ marginTop: "10px" }}>
+                    <VersionSelect version={version} onVersionSelected={setVersion} />
                 </div>
                 <div style={{ marginTop: "20px", float: "right" }}>
                     <button onClick={handleCreateButtonClick}>Create</button>

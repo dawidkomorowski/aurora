@@ -37,6 +37,7 @@ public sealed class CreateIssueRequest
     public string Title { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;
+    public int? VersionId { get; set; }
 }
 
 public sealed class CreateIssueResponse
@@ -53,6 +54,8 @@ public sealed class UpdateIssueRequest
 
     [Required(AllowEmptyStrings = false)]
     public string Status { get; set; } = string.Empty;
+
+    public int? VersionId { get; set; }
 }
 
 [ApiController]
@@ -103,18 +106,26 @@ public sealed class IssueController : ControllerBase
     [HttpPost]
     public Results<BadRequest<ValidationProblemDetails>, Created<CreateIssueResponse>> Create(CreateIssueRequest createIssueRequest)
     {
-        var issueCreateDto = new IssueCreateDto
+        try
         {
-            Title = createIssueRequest.Title,
-            Description = createIssueRequest.Description,
-            Status = "Open"
-        };
+            var issueCreateDto = new IssueCreateDto
+            {
+                Title = createIssueRequest.Title,
+                Description = createIssueRequest.Description,
+                Status = "Open",
+                VersionId = createIssueRequest.VersionId
+            };
 
-        var issueReadDto = _issuesStorage.CreateIssue(issueCreateDto);
+            var issueReadDto = _issuesStorage.CreateIssue(issueCreateDto);
 
-        var uri = Url.Action(nameof(Get), new { id = issueReadDto.Id });
-        var createIssueResponse = new CreateIssueResponse { Id = issueReadDto.Id };
-        return TypedResults.Created(uri, createIssueResponse);
+            var uri = Url.Action(nameof(Get), new { id = issueReadDto.Id });
+            var createIssueResponse = new CreateIssueResponse { Id = issueReadDto.Id };
+            return TypedResults.Created(uri, createIssueResponse);
+        }
+        catch (VersionNotFoundException)
+        {
+            return BadRequest_VersionIdIsInvalid();
+        }
     }
 
     [HttpPut("{id:int}")]
@@ -126,11 +137,16 @@ public sealed class IssueController : ControllerBase
             {
                 Title = updateIssueRequest.Title,
                 Description = updateIssueRequest.Description,
-                Status = updateIssueRequest.Status
+                Status = updateIssueRequest.Status,
+                VersionId = updateIssueRequest.VersionId
             };
             var issueReadDto = _issuesStorage.UpdateIssue(id, issueUpdateDto);
 
             return TypedResults.Ok(Convert(issueReadDto));
+        }
+        catch (VersionNotFoundException)
+        {
+            return BadRequest_VersionIdIsInvalid();
         }
         catch (IssueNotFoundException)
         {
@@ -149,5 +165,11 @@ public sealed class IssueController : ControllerBase
             CreatedDateTime = issueReadDto.CreatedDateTime,
             UpdatedDateTime = issueReadDto.UpdatedDateTime
         };
+    }
+
+    private BadRequest<ValidationProblemDetails> BadRequest_VersionIdIsInvalid()
+    {
+        ModelState.AddModelError("VersionId", "Specified version is invalid.");
+        return TypedResults.BadRequest(ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState));
     }
 }

@@ -24,6 +24,28 @@ POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 Content-Type: application/json
 
 {
+  "title": "Issue {{$randomInt}}",
+  "description": "Description of issue is {{$guid}}.",
+  "versionId": 1
+}
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "Issue {{$randomInt}}",
+  "description": "Description of issue is {{$guid}}.",
+  "versionId": 0
+}
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues
+Content-Type: application/json
+
+{
   "description": "Description of issue is {{$guid}}."
 }
 
@@ -44,6 +66,30 @@ Content-Type: application/json
   "title": "Issue {{$randomInt}}",
   "description": "Description of issue is {{$guid}}.",
   "status": "Closed"
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/issues/1
+Content-Type: application/json
+
+{
+  "title": "Issue {{$randomInt}}",
+  "description": "Description of issue is {{$guid}}.",
+  "status": "Closed",
+  "versionId": 1
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/issues/1
+Content-Type: application/json
+
+{
+  "title": "Issue {{$randomInt}}",
+  "description": "Description of issue is {{$guid}}.",
+  "status": "Closed",
+  "versionId": 0
 }
 
 ### Versions

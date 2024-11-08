@@ -2,6 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IssueApiClient } from "../ApiClients/IssueApiClient";
 
+// TODO Acceptance Criteria:
+// TODO - In Create Issue view there is a Version field.
+// TODO - In Create Issue view a Version field is empty by default meaning no version assigned.
+// TODO - In Create Issue view a Version field can be set by choosing one of predefined options from a drop down. Values are the ones defined in settings.
+// TODO - In Create Issue view a Version field can be set to empty by choosing appropriate option from a drop down.
+
 export function CreateIssueView() {
     const navigate = useNavigate();
     const [title, setTitle] = useState("");

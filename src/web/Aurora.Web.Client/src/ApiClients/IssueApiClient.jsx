@@ -17,10 +17,11 @@ export class IssueApiClient {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${id}`);
     }
 
-    static create(title, description) {
+    static create(title, description, versionId) {
         const createIssueRequest = {
             title: title,
-            description: description
+            description: description,
+            versionId: versionId
         };
 
         const requestInit = {

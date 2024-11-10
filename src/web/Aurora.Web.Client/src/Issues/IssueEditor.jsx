@@ -1,3 +1,4 @@
+import { VersionSelect } from "./VersionSelect";
 
 export function IssueEditor({ data, setData }) {
     function handleTitleInput(event) {
@@ -21,6 +22,13 @@ export function IssueEditor({ data, setData }) {
         });
     }
 
+    function handleVersionSelected(version) {
+        setData({
+            ...data,
+            version: version
+        });
+    }
+
     return (
         <div>
             <div><strong>Title</strong></div>
@@ -40,6 +48,8 @@ export function IssueEditor({ data, setData }) {
                     <option value="Closed">Closed</option>
                 </select>
             </div>
+            <div><strong>Version</strong></div>
+            <VersionSelect version={data.version} onVersionSelected={handleVersionSelected} />
         </div>
     );
 }

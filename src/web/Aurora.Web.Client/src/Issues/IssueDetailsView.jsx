@@ -3,6 +3,7 @@ import { useState, useEffect, version } from "react";
 import { IssueApiClient } from "../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
+import { NoVersion } from "./VersionSelect";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();
@@ -11,6 +12,10 @@ export function IssueDetailsView() {
 
     useEffect(() => {
         IssueApiClient.get(issueId).then(responseData => {
+            if (responseData.version === null) {
+                responseData.version = NoVersion;
+            }
+
             setData(responseData);
         }).catch(error => {
             console.error(error);
@@ -22,7 +27,8 @@ export function IssueDetailsView() {
     }
 
     function handleSaveButtonClick() {
-        IssueApiClient.update(data.id, data.title, data.description, data.status).then(responseData => {
+        const versionId = data.version.id === NoVersion.id ? null : data.version.id;
+        IssueApiClient.update(data.id, data.title, data.description, data.status, versionId).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error);

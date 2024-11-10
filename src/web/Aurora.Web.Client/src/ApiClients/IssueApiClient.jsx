@@ -35,11 +35,12 @@ export class IssueApiClient {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues`, requestInit);
     }
 
-    static update(id, title, description, status) {
+    static update(id, title, description, status, versionId) {
         const updateIssueRequest = {
             title: title,
             description: description,
-            status: status
+            status: status,
+            versionId: versionId
         };
 
         const requestInit = {

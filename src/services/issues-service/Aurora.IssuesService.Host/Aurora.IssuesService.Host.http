@@ -10,6 +10,18 @@ GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues?status=Closed
 
 ###
 
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues?versionId=1
+
+###
+
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues?versionId=0
+
+###
+
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues?status=Closed&versionId=1
+
+###
+
 POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues
 Content-Type: application/json
 

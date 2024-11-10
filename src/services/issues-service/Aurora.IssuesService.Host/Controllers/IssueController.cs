@@ -17,7 +17,10 @@ public sealed class VersionResponse
 
 public sealed class GetAllFilters
 {
+    public const int NoVersionId = 0;
+
     public string? Status { get; set; }
+    public int? VersionId { get; set; }
 }
 
 public sealed class IssueOverviewResponse
@@ -84,6 +87,13 @@ public sealed class IssueController : ControllerBase
         if (filters.Status is not null)
         {
             issues = issues.Where(i => i.Status == filters.Status);
+        }
+
+        if (filters.VersionId.HasValue)
+        {
+            issues = filters.VersionId.Value == GetAllFilters.NoVersionId
+                ? issues.Where(i => i.Version is null)
+                : issues.Where(i => i.Version?.Id == filters.VersionId);
         }
 
         var result = issues.Select(i => new IssueOverviewResponse

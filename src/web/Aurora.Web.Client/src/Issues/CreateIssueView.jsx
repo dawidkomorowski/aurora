@@ -39,6 +39,7 @@ export function CreateIssueView() {
                     <textarea value={description} onInput={handleDescriptionInput} style={{ width: "100%", height: "500px", resize: "none" }} />
                 </div>
                 <div style={{ marginTop: "10px" }}>
+                    <div><strong>Version</strong></div>
                     <VersionSelect version={version} onVersionSelected={setVersion} />
                 </div>
                 <div style={{ marginTop: "20px", float: "right" }}>

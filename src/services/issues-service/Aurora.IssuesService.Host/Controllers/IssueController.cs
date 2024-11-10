@@ -9,6 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
 
+public sealed class VersionResponse
+{
+    public required int Id { get; init; }
+    public required string Name { get; init; }
+}
+
 public sealed class GetAllFilters
 {
     public string? Status { get; set; }
@@ -27,6 +33,7 @@ public sealed class IssueDetailsResponse
     public required string Title { get; init; }
     public required string Description { get; init; }
     public required string Status { get; init; }
+    public VersionResponse? Version { get; init; }
     public required DateTime CreatedDateTime { get; init; }
     public required DateTime UpdatedDateTime { get; init; }
 }
@@ -156,12 +163,24 @@ public sealed class IssueController : ControllerBase
 
     private static IssueDetailsResponse Convert(IssueReadDto issueReadDto)
     {
+        VersionResponse? version = null;
+
+        if (issueReadDto.Version is not null)
+        {
+            version = new VersionResponse
+            {
+                Id = issueReadDto.Version.Id,
+                Name = issueReadDto.Version.Name
+            };
+        }
+
         return new IssueDetailsResponse
         {
             Id = issueReadDto.Id,
             Title = issueReadDto.Title,
             Description = issueReadDto.Description,
             Status = issueReadDto.Status,
+            Version = version,
             CreatedDateTime = issueReadDto.CreatedDateTime,
             UpdatedDateTime = issueReadDto.UpdatedDateTime
         };

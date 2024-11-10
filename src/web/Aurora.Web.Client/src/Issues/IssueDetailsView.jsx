@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, version } from "react";
 import { IssueApiClient } from "../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
@@ -7,7 +7,7 @@ import { IssueEditor } from "./IssueEditor";
 export function IssueDetailsView() {
     const { issueId } = useParams();
     const [editMode, setEditMode] = useState(false);
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({});
 
     useEffect(() => {
         IssueApiClient.get(issueId).then(responseData => {
@@ -38,7 +38,7 @@ export function IssueDetailsView() {
         button = <button onClick={handleSaveButtonClick}>Save</button>
     }
     else {
-        content = <IssueDetails title={data.title} description={data.description} status={data.status} />
+        content = <IssueDetails title={data.title} description={data.description} status={data.status} version={data.version} />
         button = <button onClick={handleEditButtonClick}>Edit</button>
     }
 

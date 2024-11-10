@@ -1,4 +1,4 @@
-export function IssueDetails({ title, description, status }) {
+export function IssueDetails({ title, description, status, version }) {
     return (
         <div>
             <div><h1>{title}</h1></div>
@@ -6,6 +6,7 @@ export function IssueDetails({ title, description, status }) {
             <div style={{ whiteSpace: "pre-wrap" }}>{description}</div>
             <br />
             <div><strong>Status: </strong>{status}</div>
+            <div><strong>Version: </strong>{version?.name}</div>
         </div>
     );
 }

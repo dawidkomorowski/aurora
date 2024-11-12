@@ -28,6 +28,7 @@ public sealed class IssueOverviewResponse
     public required int Id { get; init; }
     public required string Title { get; init; }
     public required string Status { get; init; }
+    public VersionResponse? Version { get; init; }
 }
 
 public sealed class IssueDetailsResponse
@@ -100,7 +101,8 @@ public sealed class IssueController : ControllerBase
         {
             Id = i.Id,
             Title = i.Title,
-            Status = i.Status
+            Status = i.Status,
+            Version = Convert(i.Version)
         });
 
         return result;
@@ -173,26 +175,29 @@ public sealed class IssueController : ControllerBase
 
     private static IssueDetailsResponse Convert(IssueReadDto issueReadDto)
     {
-        VersionResponse? version = null;
-
-        if (issueReadDto.Version is not null)
-        {
-            version = new VersionResponse
-            {
-                Id = issueReadDto.Version.Id,
-                Name = issueReadDto.Version.Name
-            };
-        }
-
         return new IssueDetailsResponse
         {
             Id = issueReadDto.Id,
             Title = issueReadDto.Title,
             Description = issueReadDto.Description,
             Status = issueReadDto.Status,
-            Version = version,
+            Version = Convert(issueReadDto.Version),
             CreatedDateTime = issueReadDto.CreatedDateTime,
             UpdatedDateTime = issueReadDto.UpdatedDateTime
+        };
+    }
+
+    private static VersionResponse? Convert(VersionReadDto? versionReadDto)
+    {
+        if (versionReadDto is null)
+        {
+            return null;
+        }
+
+        return new VersionResponse
+        {
+            Id = versionReadDto.Id,
+            Name = versionReadDto.Name
         };
     }
 

@@ -1,9 +1,9 @@
-import { IssueExplorer } from "./Issues/IssueExplorer"
+import { IssueExplorer } from "./Issues/Explorer/IssueExplorer"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { RootLayout } from "./RootLayout/RootLayout"
 import { NotFoundView } from "./RootLayout/NotFoundView"
 import { CreateIssueView } from "./Issues/CreateIssueView"
-import { IssueDetailsView } from "./Issues/IssueDetailsView"
+import { IssueDetailsView } from "./Issues/Details/IssueDetailsView"
 import { SettingsView } from "./Settings/SettingsView"
 
 function App() {

@@ -3,7 +3,7 @@ import styles from "./IssueList.module.css"
 
 export function IssueList({ data }) {
     const items = data.map(i => {
-        return <IssueListItem key={i.id} id={i.id} title={i.title} status={i.status} />
+        return <IssueListItem key={i.id} id={i.id} title={i.title} status={i.status} version={i.version} />
     });
 
     return (
@@ -15,7 +15,7 @@ export function IssueList({ data }) {
     );
 }
 
-function IssueListItem({ id, title, status }) {
+function IssueListItem({ id, title, status, version }) {
     const navigate = useNavigate();
 
     function handleClick() {
@@ -28,7 +28,8 @@ function IssueListItem({ id, title, status }) {
             <div style={{ width: "80%" }}>
                 <strong>{title}</strong>
             </div>
-            <div>{status}</div>
+            <div style={{ width: "10%" }}>{status}</div>
+            <div>{version?.name}</div>
         </div>
     );
 }

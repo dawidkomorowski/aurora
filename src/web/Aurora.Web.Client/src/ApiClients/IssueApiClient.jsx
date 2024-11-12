@@ -4,13 +4,17 @@ export class IssueApiClient {
     static #issuesServiceUrl = `${__ISSUES_SERVICE_API_URL__}/api`;
 
     static getAll(filters) {
-        let uri = `${this.#issuesServiceUrl}/issues`;
+        const searchParams = new URLSearchParams();
 
         if (filters?.status) {
-            uri = `${uri}?status=${encodeURIComponent(filters.status)}`;
+            searchParams.set("status", filters.status);
         }
 
-        return ApiClient.fetch(uri);
+        if (filters?.versionId != null) {
+            searchParams.set("versionId", filters.versionId);
+        }
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/issues?${searchParams.toString()}`);
     }
 
     static get(id) {

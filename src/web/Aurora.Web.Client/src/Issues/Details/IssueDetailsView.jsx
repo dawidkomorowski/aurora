@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect, version } from "react";
-import { IssueApiClient } from "../ApiClients/IssueApiClient";
+import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
-import { NoVersion } from "./VersionSelect";
+import { NoVersion } from "../VersionSelect";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();

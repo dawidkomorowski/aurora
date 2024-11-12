@@ -10,6 +10,10 @@ export class IssueApiClient {
             uri = `${uri}?status=${encodeURIComponent(filters.status)}`;
         }
 
+        if (filters?.versionId != null) {
+            uri = `${uri}?versionId=${encodeURIComponent(filters.versionId)}`;
+        }
+
         return ApiClient.fetch(uri);
     }
 

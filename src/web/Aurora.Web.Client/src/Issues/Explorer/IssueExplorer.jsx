@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
-import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
+import { ShowAllVersionFilter, ShowUnassignedVersionFilter, VersionFilter } from "./VersionFilter";
 
 export function IssueExplorer() {
     const [statusFilter, setStatusFilter] = useState("");
@@ -10,8 +10,13 @@ export function IssueExplorer() {
 
     useEffect(() => {
         const filters = {
-            status: statusFilter || null
+            status: statusFilter || null,
+            versionId: null
         };
+
+        if (versionFilter !== ShowAllVersionFilter) {
+            filters.versionId = versionFilter.id;
+        }
 
         IssueApiClient.getAll(filters).then(responseData => {
             setData(responseData);

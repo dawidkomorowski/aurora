@@ -1,4 +1,4 @@
-import { VersionSelect } from "./VersionSelect";
+import { VersionSelect } from "../VersionSelect";
 
 export function IssueEditor({ data, setData }) {
     function handleTitleInput(event) {

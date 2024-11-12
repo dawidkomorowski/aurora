@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
-import { IssueApiClient } from "../ApiClients/IssueApiClient";
+import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 
 export function IssueExplorer() {
     const [statusFilter, setStatusFilter] = useState("");

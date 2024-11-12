@@ -8,7 +8,7 @@ export function SettingsView() {
 
     useEffect(() => {
         refreshVersions();
-    }, [])
+    }, []);
 
     function refreshVersions() {
         VersionApiClient.getAll().then(responseData => {

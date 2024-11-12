@@ -10,6 +10,10 @@ export function VersionListItem({ id, name, onRefreshRequested }) {
     const [validationErrors, setValidationErrors] = useState([]);
 
     useEffect(() => {
+        setVersionName(name);
+    }, [name]);
+
+    useEffect(() => {
         setValidationErrors(VersionNameValidator.validate(versionName));
     }, [versionName]);
 

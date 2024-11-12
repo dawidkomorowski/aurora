@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
-import { ShowAllVersionFilter, ShowUnassignedVersionFilter, VersionFilter } from "./VersionFilter";
+import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
 
 export function IssueExplorer() {
     const [statusFilter, setStatusFilter] = useState("");

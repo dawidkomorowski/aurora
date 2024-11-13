@@ -6,10 +6,9 @@ import { useSearchParams } from "react-router-dom";
 
 export function IssueExplorer() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [statusFilter, setStatusFilter] = useState("");
-    const [versionFilter, setVersionFilter] = useState(ShowAllVersionFilter);
+    const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "");
+    const [versionFilter, setVersionFilter] = useState(searchParams.get("versionId") != null ? { id: searchParams.get("versionId") } : ShowAllVersionFilter);
     const [data, setData] = useState([]);
-
 
     useEffect(() => {
         const newSearchParams = new URLSearchParams(searchParams.toString());

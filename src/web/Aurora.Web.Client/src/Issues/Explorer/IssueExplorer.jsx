@@ -2,11 +2,34 @@ import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
+import { useSearchParams } from "react-router-dom";
 
 export function IssueExplorer() {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [statusFilter, setStatusFilter] = useState("");
     const [versionFilter, setVersionFilter] = useState(ShowAllVersionFilter);
     const [data, setData] = useState([]);
+
+
+    useEffect(() => {
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+
+        if (statusFilter) {
+            newSearchParams.set("status", statusFilter);
+        }
+        else {
+            newSearchParams.delete("status");
+        }
+
+        if (versionFilter === ShowAllVersionFilter) {
+            newSearchParams.delete("versionId");
+        }
+        else {
+            newSearchParams.set("versionId", versionFilter.id);
+        }
+
+        setSearchParams(newSearchParams);
+    }, [statusFilter, versionFilter]);
 
     useEffect(() => {
         const filters = {

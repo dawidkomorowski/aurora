@@ -4,6 +4,10 @@ import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
 import { useSearchParams } from "react-router-dom";
 
+// TODO Refactor VersionFilter in a way that externally it operates only on a value that can be persisted in URL i.e. version ID.
+// TODO When value from search params is not available in filter it should be set to some default value i.e. nonexistent version ID 123 is found in params but such version ID is not available in filters.
+// TODO Refactor search params handling so it avoids duplication and is easier to extend and maintain. Consider using custom hook?
+
 export function IssueExplorer() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "");

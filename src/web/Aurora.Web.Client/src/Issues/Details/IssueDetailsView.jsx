@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect, version } from "react";
+import { useState, useEffect } from "react";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";

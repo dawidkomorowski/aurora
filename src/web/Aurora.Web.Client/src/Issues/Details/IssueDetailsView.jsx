@@ -12,15 +12,19 @@ export function IssueDetailsView() {
 
     useEffect(() => {
         IssueApiClient.get(issueId).then(responseData => {
-            if (responseData.version === null) {
-                responseData.version = NoVersion;
-            }
-
-            setData(responseData);
+            setData(createDataFromResponse(responseData));
         }).catch(error => {
             console.error(error);
         });
     }, []);
+
+    function createDataFromResponse(responseData) {
+        if (responseData.version === null) {
+            responseData.version = NoVersion;
+        }
+
+        return responseData;
+    }
 
     function handleEditButtonClick() {
         setEditMode(true);
@@ -29,7 +33,7 @@ export function IssueDetailsView() {
     function handleSaveButtonClick() {
         const versionId = data.version.id === NoVersion.id ? null : data.version.id;
         IssueApiClient.update(data.id, data.title, data.description, data.status, versionId).then(responseData => {
-            setData(responseData);
+            setData(createDataFromResponse(responseData));
         }).catch(error => {
             console.error(error);
         });

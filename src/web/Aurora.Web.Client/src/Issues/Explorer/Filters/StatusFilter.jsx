@@ -3,18 +3,18 @@ import { useSearchFilters } from "./useSearchFilters";
 
 export function StatusFilter() {
     const [searchFilters, setSearchFilters] = useSearchFilters();
-    const [status, setStatus] = useState(searchFilters.status);
+    const [status, setStatus] = useState(searchFilters.status ?? "All");
 
     useEffect(() => {
         const newSearchFilters = {
             ...searchFilters,
-            status: status
+            status: status === "All" ? null : status
         };
         setSearchFilters(newSearchFilters);
     }, [status]);
 
     useEffect(() => {
-        setStatus(searchFilters.status);
+        setStatus(searchFilters.status ?? "All");
     }, [searchFilters]);
 
     function handleInput(event) {
@@ -23,7 +23,7 @@ export function StatusFilter() {
 
     return (
         <select value={status} onInput={handleInput} style={{ width: "200px" }}>
-            <option value="">All</option>
+            <option value="All">All</option>
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
             <option value="Closed">Closed</option>

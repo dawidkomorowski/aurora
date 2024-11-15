@@ -12,11 +12,11 @@ export function useSearchFilters() {
     useEffect(() => {
         const newSearchParams = new URLSearchParams();
 
-        if (searchFilters.status) {
+        if (searchFilters.status !== null) {
             newSearchParams.set(statusFilterName, searchFilters.status);
         }
 
-        if (searchFilters.versionId != -1) {
+        if (searchFilters.versionId !== null) {
             newSearchParams.set(versionFilterName, searchFilters.versionId);
         }
 
@@ -31,7 +31,7 @@ const versionFilterName = "versionId";
 
 function toSearchFilters(searchParams) {
     return {
-        status: searchParams.get(statusFilterName) ?? "",
-        versionId: searchParams.get(versionFilterName) ?? -1
+        status: searchParams.get(statusFilterName) ?? null,
+        versionId: searchParams.get(versionFilterName) ?? null
     };
 }

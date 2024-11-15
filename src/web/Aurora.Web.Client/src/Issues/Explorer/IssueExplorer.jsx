@@ -5,8 +5,6 @@ import { VersionFilter } from "./Filters/VersionFilter";
 import { useSearchFilters } from "./Filters/useSearchFilters";
 import { StatusFilter } from "./Filters/StatusFilter";
 
-// TODO When value from search params is not available in filter it should be set to some default value i.e. nonexistent version ID 123 is found in params but such version ID is not available in filters.
-
 export function IssueExplorer() {
     const [searchFilters, _] = useSearchFilters();
     const [data, setData] = useState([]);

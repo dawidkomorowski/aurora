@@ -5,21 +5,11 @@ import { VersionFilter } from "./Filters/VersionFilter";
 import { useSearchFilters } from "./Filters/useSearchFilters";
 import { StatusFilter } from "./Filters/StatusFilter";
 
-// TODO Refactor VersionFilter in a way that externally it operates only on a value that can be persisted in URL i.e. version ID.
 // TODO When value from search params is not available in filter it should be set to some default value i.e. nonexistent version ID 123 is found in params but such version ID is not available in filters.
 
 export function IssueExplorer() {
-    const [searchFilters, setSearchFilters] = useSearchFilters();
-    const [versionFilter, setVersionFilter] = useState({ id: searchFilters.versionId });
+    const [searchFilters, _] = useSearchFilters();
     const [data, setData] = useState([]);
-
-    useEffect(() => {
-        const newSearchFilters = {
-            ...searchFilters,
-            versionId: versionFilter.id
-        };
-        setSearchFilters(newSearchFilters);
-    }, [versionFilter]);
 
     useEffect(() => {
         const filters = {
@@ -47,7 +37,7 @@ export function IssueExplorer() {
                     <div style={{ margin: "10px" }}>
                         <strong>Version</strong>
                     </div>
-                    <VersionFilter versionFilter={versionFilter} setVersionFilter={setVersionFilter} />
+                    <VersionFilter />
                 </div>
             </div>
             <IssueList data={data} />

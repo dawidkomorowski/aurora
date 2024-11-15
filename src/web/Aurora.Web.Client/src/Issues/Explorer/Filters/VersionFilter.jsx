@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { VersionApiClient } from "../../../ApiClients/VersionApiClient";
+import { useSearchFilters } from "./useSearchFilters";
 
-export function VersionFilter({ versionFilter, setVersionFilter }) {
+export function VersionFilter() {
+    const [searchFilters, setSearchFilters] = useSearchFilters();
+    const [version, setVersion] = useState({ id: searchFilters.versionId });
     const [versions, setVersions] = useState([]);
 
     useEffect(() => {
@@ -12,16 +15,24 @@ export function VersionFilter({ versionFilter, setVersionFilter }) {
         });
     }, []);
 
+    useEffect(() => {
+        const newSearchFilters = {
+            ...searchFilters,
+            versionId: version.id
+        };
+        setSearchFilters(newSearchFilters);
+    }, [version]);
+
     function handleInput(event) {
         const versionId = parseInt(event.target.value);
         const selectedVersion = versions.find(v => v.id === versionId);
-        setVersionFilter(selectedVersion);
+        setVersion(selectedVersion);
     }
 
     const options = versions.map(v => <option key={v.id} value={v.id}>{v.name}</option>);
 
     return (
-        <select value={versionFilter.id} onInput={handleInput} style={{ width: "200px" }}>
+        <select value={version.id} onInput={handleInput} style={{ width: "200px" }}>
             {options}
         </select>
     );

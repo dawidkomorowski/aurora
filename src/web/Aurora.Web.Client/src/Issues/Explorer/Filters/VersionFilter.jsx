@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { VersionApiClient } from "../../ApiClients/VersionApiClient";
+import { VersionApiClient } from "../../../ApiClients/VersionApiClient";
 
 export function VersionFilter({ versionFilter, setVersionFilter }) {
     const [versions, setVersions] = useState([]);

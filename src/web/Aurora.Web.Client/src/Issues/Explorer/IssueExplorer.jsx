@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
-import { VersionFilter } from "./VersionFilter";
-import { useSearchFilters } from "./useSearchFilters";
-import { StatusFilter } from "./StatusFilter";
+import { VersionFilter } from "./Filters/VersionFilter";
+import { useSearchFilters } from "./Filters/useSearchFilters";
+import { StatusFilter } from "./Filters/StatusFilter";
 
 // TODO Refactor VersionFilter in a way that externally it operates only on a value that can be persisted in URL i.e. version ID.
 // TODO When value from search params is not available in filter it should be set to some default value i.e. nonexistent version ID 123 is found in params but such version ID is not available in filters.

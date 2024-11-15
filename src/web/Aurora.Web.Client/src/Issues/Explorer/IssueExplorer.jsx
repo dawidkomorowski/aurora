@@ -1,55 +1,38 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
-import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
-import { useSearchParams } from "react-router-dom";
+import { VersionFilter } from "./VersionFilter";
+import { useSearchFilters } from "./useSearchFilters";
 
 // TODO Refactor VersionFilter in a way that externally it operates only on a value that can be persisted in URL i.e. version ID.
 // TODO When value from search params is not available in filter it should be set to some default value i.e. nonexistent version ID 123 is found in params but such version ID is not available in filters.
-// TODO Refactor search params handling so it avoids duplication and is easier to extend and maintain. Consider using custom hook?
 
 export function IssueExplorer() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "");
-    const [versionFilter, setVersionFilter] = useState(searchParams.get("versionId") != null ? { id: searchParams.get("versionId") } : ShowAllVersionFilter);
+    const [searchFilters, setSearchFilters] = useSearchFilters();
+    const [statusFilter, setStatusFilter] = useState(searchFilters.status);
+    const [versionFilter, setVersionFilter] = useState({ id: searchFilters.versionId });
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        const newSearchParams = new URLSearchParams(searchParams.toString());
-
-        if (statusFilter) {
-            newSearchParams.set("status", statusFilter);
-        }
-        else {
-            newSearchParams.delete("status");
-        }
-
-        if (versionFilter === ShowAllVersionFilter) {
-            newSearchParams.delete("versionId");
-        }
-        else {
-            newSearchParams.set("versionId", versionFilter.id);
-        }
-
-        setSearchParams(newSearchParams);
+        const newFilters = {
+            status: statusFilter,
+            versionId: versionFilter.id
+        };
+        setSearchFilters(newFilters);
     }, [statusFilter, versionFilter]);
 
     useEffect(() => {
         const filters = {
-            status: statusFilter || null,
-            versionId: null
+            status: searchFilters.status || null,
+            versionId: searchFilters.versionId === -1 ? null : searchFilters.versionId
         };
-
-        if (versionFilter !== ShowAllVersionFilter) {
-            filters.versionId = versionFilter.id;
-        }
 
         IssueApiClient.getAll(filters).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error)
         });
-    }, [statusFilter, versionFilter]);
+    }, [searchFilters]);
 
     function handleStatusFilterInput(event) {
         setStatusFilter(event.target.value);

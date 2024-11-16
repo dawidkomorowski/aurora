@@ -4,6 +4,7 @@ import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
 import { NoVersion } from "../VersionSelect";
+import { AuroraTitle } from "../../Components/AuroraTitle";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();
@@ -54,6 +55,7 @@ export function IssueDetailsView() {
 
     return (
         <div style={{ display: "flex", justifyContent: "center" }}>
+            <AuroraTitle title={data.title} />
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }} >
                 <div><strong>Id: </strong>{data.id}</div>
                 {content}

@@ -1,33 +1,26 @@
 import { useEffect, useState } from "react";
 import { IssueList } from "./IssueList";
 import { IssueApiClient } from "../../ApiClients/IssueApiClient";
-import { ShowAllVersionFilter, VersionFilter } from "./VersionFilter";
+import { VersionFilter } from "./Filters/VersionFilter";
+import { useSearchFilters } from "./Filters/useSearchFilters";
+import { StatusFilter } from "./Filters/StatusFilter";
 
 export function IssueExplorer() {
-    const [statusFilter, setStatusFilter] = useState("");
-    const [versionFilter, setVersionFilter] = useState(ShowAllVersionFilter);
+    const [searchFilters, _] = useSearchFilters();
     const [data, setData] = useState([]);
 
     useEffect(() => {
         const filters = {
-            status: statusFilter || null,
-            versionId: null
+            status: searchFilters.status,
+            versionId: searchFilters.versionId
         };
-
-        if (versionFilter !== ShowAllVersionFilter) {
-            filters.versionId = versionFilter.id;
-        }
 
         IssueApiClient.getAll(filters).then(responseData => {
             setData(responseData);
         }).catch(error => {
             console.error(error)
         });
-    }, [statusFilter, versionFilter]);
-
-    function handleStatusFilterInput(event) {
-        setStatusFilter(event.target.value);
-    }
+    }, [searchFilters]);
 
     return (
         <div>
@@ -36,22 +29,16 @@ export function IssueExplorer() {
                     <div style={{ margin: "10px" }}>
                         <strong>Status</strong>
                     </div>
-                    <select value={statusFilter} onInput={handleStatusFilterInput} style={{ width: "200px" }}>
-                        <option value="">All</option>
-                        <option value="Open">Open</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Closed">Closed</option>
-                    </select>
+                    <StatusFilter />
                 </div>
                 <div style={{ display: "flex" }}>
                     <div style={{ margin: "10px" }}>
                         <strong>Version</strong>
                     </div>
-                    <VersionFilter versionFilter={versionFilter} setVersionFilter={setVersionFilter} />
+                    <VersionFilter />
                 </div>
             </div>
             <IssueList data={data} />
         </div>
     );
 }
-

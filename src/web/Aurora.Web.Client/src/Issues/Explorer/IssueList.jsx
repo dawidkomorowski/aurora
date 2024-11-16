@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styles from "./IssueList.module.css"
 
 export function IssueList({ data }) {

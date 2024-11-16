@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import styles from "./IssueList.module.css"
+import { IssueListItem } from "./IssueListItem";
 
 export function IssueList({ data }) {
     const items = data.map(i => {
@@ -15,21 +14,3 @@ export function IssueList({ data }) {
     );
 }
 
-function IssueListItem({ id, title, status, version }) {
-    const navigate = useNavigate();
-
-    function handleClick() {
-        navigate(`/issue/${id}`);
-    }
-
-    return (
-        <div className={styles.listItem} style={{ display: "flex", cursor: "pointer", borderBottomStyle: "solid", borderWidth: "1px" }} onClick={handleClick}>
-            <div style={{ width: "75px", textAlign: "center" }}>{id}</div>
-            <div style={{ width: "80%" }}>
-                <strong>{title}</strong>
-            </div>
-            <div style={{ width: "10%" }}>{status}</div>
-            <div>{version?.name}</div>
-        </div>
-    );
-}

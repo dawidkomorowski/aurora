@@ -7,3 +7,12 @@
 .listItem:hover {
     background-color: #757575;
 }
+
+.issueLink {
+    text-decoration: none;
+    color: black;
+}
+
+.issueLink:hover {
+    color: darkblue;
+}

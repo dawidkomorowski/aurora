@@ -32,6 +32,6 @@ const versionFilterName = "versionId";
 function toSearchFilters(searchParams) {
     return {
         status: searchParams.get(statusFilterName) ?? null,
-        versionId: searchParams.get(versionFilterName) ?? null
+        versionId: searchParams.get(versionFilterName) ? parseInt(searchParams.get(versionFilterName)) : null
     };
 }

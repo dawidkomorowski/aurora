@@ -11,8 +11,8 @@ export function IssueExplorer() {
 
     useEffect(() => {
         const filters = {
-            status: searchFilters.status || null,
-            versionId: searchFilters.versionId === -1 ? null : searchFilters.versionId
+            status: searchFilters.status,
+            versionId: searchFilters.versionId
         };
 
         IssueApiClient.getAll(filters).then(responseData => {

@@ -7,8 +7,10 @@ import { useSearchFilters } from "./useSearchFilters";
 
 export function VersionFilter() {
     const [searchFilters, setSearchFilters] = useSearchFilters();
-    const [version, setVersion] = useState(searchFilters.versionId === null ? ShowAllVersionFilter : { id: parseInt(searchFilters.versionId) ?? -1 });
+    const [version, setVersion] = useState(ShowAllVersionFilter);
     const [versions, setVersions] = useState([]);
+
+    const versionsNotYetLoaded = versions.length === 0;
 
     useEffect(() => {
         VersionApiClient.getAll().then(responseData => {
@@ -19,18 +21,34 @@ export function VersionFilter() {
     }, []);
 
     useEffect(() => {
+        if (versionsNotYetLoaded) {
+            return;
+        }
+
         const newSearchFilters = {
             ...searchFilters,
             versionId: version === ShowAllVersionFilter ? null : version.id
         };
+
         setSearchFilters(newSearchFilters);
     }, [version]);
 
     useEffect(() => {
-        const versionId = searchFilters.versionId === null ? -1 : parseInt(searchFilters.versionId);
-        const versionFromSearchFilters = versions.find(v => v.id === versionId) ?? ShowAllVersionFilter;
+        if (versionsNotYetLoaded) {
+            return;
+        }
+
+        if (version === ShowAllVersionFilter && searchFilters.versionId === null) {
+            return;
+        }
+
+        if (version.id === searchFilters.versionId) {
+            return;
+        }
+
+        const versionFromSearchFilters = versions.find(v => v.id === (searchFilters.versionId ?? -1)) ?? ShowAllVersionFilter;
         setVersion(versionFromSearchFilters);
-    }, [searchFilters]);
+    }, [searchFilters, versions]);
 
     function handleInput(event) {
         const versionId = parseInt(event.target.value);

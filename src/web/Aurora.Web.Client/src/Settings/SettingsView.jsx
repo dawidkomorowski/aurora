@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { VersionListItem } from "./VersionListItem";
 import { NewVersionComponent } from "./NewVersionComponent";
 import { VersionApiClient } from "../ApiClients/VersionApiClient";
+import { AuroraTitle } from "../Components/AuroraTitle";
 
 export function SettingsView() {
     const [versions, setVersions] = useState([]);
@@ -26,6 +27,7 @@ export function SettingsView() {
 
     return (
         <div style={{ display: "flex", justifyContent: "center" }}>
+            <AuroraTitle title="Settings" />
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }} >
                 <span>
                     <h1>Settings</h1>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IssueApiClient } from "../ApiClients/IssueApiClient";
 import { NoVersion, VersionSelect } from "./VersionSelect";
+import { AuroraTitle } from "../Components/AuroraTitle";
 
 export function CreateIssueView() {
     const navigate = useNavigate();
@@ -28,6 +29,7 @@ export function CreateIssueView() {
 
     return (
         <div style={{ display: "flex", justifyContent: "center" }}>
+            <AuroraTitle title="Create Issue" />
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
                 <div><strong>Title</strong></div>
                 <div style={{ paddingRight: "10px" }}>

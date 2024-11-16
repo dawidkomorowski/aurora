@@ -4,8 +4,9 @@ import { IssueApiClient } from "../../ApiClients/IssueApiClient";
 import { VersionFilter } from "./Filters/VersionFilter";
 import { useSearchFilters } from "./Filters/useSearchFilters";
 import { StatusFilter } from "./Filters/StatusFilter";
+import { AuroraTitle } from "../../Components/AuroraTitle";
 
-export function IssueExplorer() {
+export function IssueExplorerView() {
     const [searchFilters, _] = useSearchFilters();
     const [data, setData] = useState([]);
 
@@ -24,6 +25,7 @@ export function IssueExplorer() {
 
     return (
         <div>
+            <AuroraTitle title="Issue Explorer" />
             <div style={{ display: "flex" }}>
                 <div style={{ display: "flex" }}>
                     <div style={{ margin: "10px" }}>

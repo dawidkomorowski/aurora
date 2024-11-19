@@ -9,8 +9,15 @@ export function Checklist({ title }) {
 
     return (
         <div style={{ borderStyle: "solid", borderWidth: "2px", padding: "10px" }}>
-            <div>
-                <strong>{data.title}</strong>
+            <div style={{ display: "flex" }}>
+                <div>
+                    <strong>{data.title}</strong>
+                </div>
+                <div style={{ marginLeft: "auto" }}>
+                    <button>Add item</button>
+                    <button style={{ marginLeft: "5px" }}>Edit</button>
+                    <button style={{ marginLeft: "5px" }}>Remove</button>
+                </div>
             </div>
             <div>
                 {items}
@@ -20,12 +27,21 @@ export function Checklist({ title }) {
 }
 
 function ChecklistItem({ id, content, checked }) {
+
+    function handleInput() {
+
+    }
+
     return (
-        <div style={{ display: "flex" }}>
+        <div style={{ display: "flex", margin: "5px 0px 5px 0px" }}>
             <div>
-                <input type="checkbox" checked={checked} />
+                <input type="checkbox" checked={checked} onChange={handleInput} />
             </div>
             <div>{content}</div>
+            <div style={{ marginLeft: "auto" }}>
+                <button>Edit</button>
+                <button style={{ marginLeft: "5px" }}>Remove</button>
+            </div>
         </div>
     );
 }

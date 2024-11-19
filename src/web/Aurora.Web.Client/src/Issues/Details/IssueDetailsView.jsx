@@ -5,7 +5,7 @@ import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
 import { NoVersion } from "../VersionSelect";
 import { AuroraTitle } from "../../Components/AuroraTitle";
-import { Checklist } from "./Checklist";
+import { Checklist } from "./Checklist/Checklist";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();

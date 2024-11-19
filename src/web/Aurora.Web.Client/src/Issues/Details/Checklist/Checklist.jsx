@@ -1,3 +1,4 @@
+import { ChecklistItem } from "./ChecklistItem";
 
 export function Checklist({ title }) {
     const data = {
@@ -21,26 +22,6 @@ export function Checklist({ title }) {
             </div>
             <div>
                 {items}
-            </div>
-        </div>
-    );
-}
-
-function ChecklistItem({ id, content, checked }) {
-
-    function handleInput() {
-
-    }
-
-    return (
-        <div style={{ display: "flex", margin: "5px 0px 5px 0px" }}>
-            <div>
-                <input type="checkbox" checked={checked} onChange={handleInput} />
-            </div>
-            <div>{content}</div>
-            <div style={{ marginLeft: "auto" }}>
-                <button>Edit</button>
-                <button style={{ marginLeft: "5px" }}>Remove</button>
             </div>
         </div>
     );

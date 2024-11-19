@@ -6,6 +6,7 @@ import { IssueEditor } from "./IssueEditor";
 import { NoVersion } from "../VersionSelect";
 import { AuroraTitle } from "../../Components/AuroraTitle";
 import { Checklist } from "./Checklist/Checklist";
+import { ChecklistsSection } from "./Checklist/ChecklistsSection";
 
 export function IssueDetailsView() {
     const { issueId } = useParams();
@@ -69,19 +70,7 @@ export function IssueDetailsView() {
                     </div>
                 </div>
             </div >
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-                <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
-                    <div>
-                        <strong>Checklists</strong>
-                    </div>
-                    <div style={{ marginTop: "10px" }}>
-                        <Checklist title="Checklist 1" />
-                    </div>
-                    <div style={{ marginTop: "10px" }}>
-                        <Checklist title="Checklist 2" />
-                    </div>
-                </div>
-            </div >
+            <ChecklistsSection />
         </div >
     );
 }

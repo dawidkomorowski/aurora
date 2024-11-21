@@ -1,13 +1,13 @@
 import { ChecklistItem } from "./ChecklistItem";
 
-export function Checklist({ checklistData }) {
-    const items = checklistData.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} checked={i.checked} />);
+export function Checklist({ checklist }) {
+    const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
 
     return (
         <div style={{ borderStyle: "solid", borderWidth: "2px", padding: "10px" }}>
             <div style={{ display: "flex" }}>
                 <div>
-                    <strong>{checklistData.title}</strong>
+                    <strong>{checklist.title}</strong>
                 </div>
                 <div style={{ marginLeft: "auto" }}>
                     <button>Add item</button>

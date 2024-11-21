@@ -1,6 +1,6 @@
 import styles from "./ChecklistItem.module.css"
 
-export function ChecklistItem({ id, content, checked }) {
+export function ChecklistItem({ id, content, isChecked }) {
 
     function handleInput() {
     }
@@ -8,7 +8,7 @@ export function ChecklistItem({ id, content, checked }) {
     return (
         <div className={styles.checklistItem} style={{ display: "flex", margin: "5px 0px 5px 0px" }}>
             <div>
-                <input type="checkbox" checked={checked} onChange={handleInput} />
+                <input type="checkbox" checked={isChecked} onChange={handleInput} />
             </div>
             <div>{content}</div>
             <div style={{ marginLeft: "auto" }}>

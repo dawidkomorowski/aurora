@@ -213,4 +213,8 @@ Content-Type: application/json
   "name": "   Version {{$guid}}   "
 }
 
+### Issues/Checklists
+
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues/2/checklists
+
 ###

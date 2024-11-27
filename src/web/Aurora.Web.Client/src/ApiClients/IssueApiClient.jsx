@@ -58,4 +58,3 @@ export class IssueApiClient {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${id}`, requestInit);
     }
 }
-

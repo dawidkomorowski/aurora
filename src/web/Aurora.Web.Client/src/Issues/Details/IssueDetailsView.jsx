@@ -5,7 +5,6 @@ import { IssueDetails } from "./IssueDetails";
 import { IssueEditor } from "./IssueEditor";
 import { NoVersion } from "../VersionSelect";
 import { AuroraTitle } from "../../Components/AuroraTitle";
-import { Checklist } from "./Checklist/Checklist";
 import { ChecklistsSection } from "./Checklist/ChecklistsSection";
 
 export function IssueDetailsView() {
@@ -70,7 +69,7 @@ export function IssueDetailsView() {
                     </div>
                 </div>
             </div >
-            <ChecklistsSection />
+            <ChecklistsSection issueId={issueId} />
         </div >
     );
 }

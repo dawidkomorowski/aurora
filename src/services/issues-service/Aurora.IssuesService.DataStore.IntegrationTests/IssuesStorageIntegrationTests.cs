@@ -979,6 +979,45 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateChecklist_ShouldCreateNewChecklistForSpecifiedIssue()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var createDto = new ChecklistCreateDto
+        {
+            Title = "Checklist title"
+        };
+
+        // Assume
+        var checklistsBefore = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsBefore, Is.Empty);
+
+        // Act
+        var createdChecklist = issuesStorage.CreateChecklist(issueBefore.Id, createDto);
+
+        // Assert
+        Assert.That(createdChecklist.Id, Is.EqualTo(1));
+        Assert.That(createdChecklist.Title, Is.EqualTo(createDto.Title));
+
+        var checklistsAfter = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsAfter, Has.Count.EqualTo(1));
+        var checklist = checklistsAfter.Single();
+        Assert.That(checklist, Is.EqualTo(createdChecklist));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
+    }
+
+    [Test]
     public void StorageAccessIsThreadSafe()
     {
         // Arrange

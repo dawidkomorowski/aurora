@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
@@ -18,6 +19,9 @@ public interface IIssuesStorage
     IReadOnlyCollection<VersionReadDto> GetAllVersions();
     VersionReadDto GetVersion(int id);
     VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto);
+
+    ChecklistReadDto CreateChecklist(int issueId, ChecklistCreateDto checklistCreateDto);
+    IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
@@ -56,7 +60,8 @@ public sealed class IssuesStorage : IIssuesStorage
             {
                 Version = StorageUpgrade.CurrentVersion,
                 Issues = [],
-                Versions = []
+                Versions = [],
+                Checklists = []
             };
             WriteDatabaseFile(issuesDatabase);
         }
@@ -110,7 +115,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            return issuesDatabase.Issues.SingleOrDefault(i => i.Id == id)?.ToReadDto(issuesDatabase) ?? throw new IssueNotFoundException();
+            return issuesDatabase.GetIssue(id).ToReadDto(issuesDatabase);
         }
     }
 
@@ -119,7 +124,7 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            var issueToUpdate = issuesDatabase.Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
+            var issueToUpdate = issuesDatabase.GetIssue(id);
             var index = issuesDatabase.Issues.IndexOf(issueToUpdate);
 
             var utcNow = DateTime.UtcNow;
@@ -205,7 +210,7 @@ public sealed class IssuesStorage : IIssuesStorage
                 throw new VersionAlreadyExistsException();
             }
 
-            var versionToUpdate = issuesDatabase.Versions.SingleOrDefault(i => i.Id == id) ?? throw new VersionNotFoundException();
+            var versionToUpdate = issuesDatabase.GetVersion(id);
             var index = issuesDatabase.Versions.IndexOf(versionToUpdate);
 
             versionToUpdate = new DbVersion
@@ -219,6 +224,54 @@ public sealed class IssuesStorage : IIssuesStorage
             WriteDatabaseFile(issuesDatabase);
 
             return versionToUpdate.ToReadDto();
+        }
+    }
+
+    public ChecklistReadDto CreateChecklist(int issueId, ChecklistCreateDto checklistCreateDto)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var issueToUpdate = issuesDatabase.GetIssue(issueId);
+            var issueIndex = issuesDatabase.Issues.IndexOf(issueToUpdate);
+
+            var nextId = issuesDatabase.Checklists.Count != 0 ? issuesDatabase.Checklists.Max(c => c.Id) + 1 : 1;
+            var utcNow = DateTime.UtcNow;
+
+            var newChecklist = new DbChecklist
+            {
+                Id = nextId,
+                IssueId = issueId,
+                Title = checklistCreateDto.Title
+            };
+
+            issuesDatabase.Checklists.Add(newChecklist);
+
+            issueToUpdate = new DbIssue
+            {
+                Id = issueToUpdate.Id,
+                Title = issueToUpdate.Title,
+                Description = issueToUpdate.Description,
+                Status = issueToUpdate.Status,
+                CreatedDateTime = issueToUpdate.CreatedDateTime,
+                UpdatedDateTime = utcNow,
+                VersionId = issueToUpdate.VersionId
+            };
+
+            issuesDatabase.Issues[issueIndex] = issueToUpdate;
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return newChecklist.ToReadDto();
+        }
+    }
+
+    public IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.Checklists.Where(c => c.IssueId == issueId).Select(c => c.ToReadDto()).ToArray();
         }
     }
 
@@ -239,6 +292,12 @@ public sealed class IssuesStorage : IIssuesStorage
         public int Version { get; init; }
         public required List<DbIssue> Issues { get; init; }
         public required List<DbVersion> Versions { get; init; }
+        public required List<DbChecklist> Checklists { get; init; }
+
+        public DbIssue GetIssue(int id)
+        {
+            return Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
+        }
 
         public DbVersion GetVersion(int id)
         {
@@ -282,6 +341,19 @@ public sealed class IssuesStorage : IIssuesStorage
         {
             Id = Id,
             Name = Name
+        };
+    }
+
+    private sealed class DbChecklist
+    {
+        public required int Id { get; init; }
+        public required int IssueId { get; init; }
+        public required string Title { get; init; }
+
+        public ChecklistReadDto ToReadDto() => new()
+        {
+            Id = Id,
+            Title = Title
         };
     }
 }

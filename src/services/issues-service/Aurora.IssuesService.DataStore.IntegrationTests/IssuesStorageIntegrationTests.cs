@@ -1018,6 +1018,70 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateChecklist_ShouldCreateMultipleChecklistsForSpecifiedIssue_WhenCalledMultipleTimes()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var createDto1 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 1"
+        };
+
+        var createDto2 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 2"
+        };
+
+        var createDto3 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 3"
+        };
+
+        // Assume
+        var checklistsBefore = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsBefore, Is.Empty);
+
+        // Act
+        var createdChecklist1 = issuesStorage.CreateChecklist(issueBefore.Id, createDto1);
+        var createdChecklist2 = issuesStorage.CreateChecklist(issueBefore.Id, createDto2);
+        var createdChecklist3 = issuesStorage.CreateChecklist(issueBefore.Id, createDto3);
+
+        // Assert
+        Assert.That(createdChecklist1.Id, Is.EqualTo(1));
+        Assert.That(createdChecklist1.Title, Is.EqualTo(createDto1.Title));
+
+        Assert.That(createdChecklist2.Id, Is.EqualTo(2));
+        Assert.That(createdChecklist2.Title, Is.EqualTo(createDto2.Title));
+
+        Assert.That(createdChecklist3.Id, Is.EqualTo(3));
+        Assert.That(createdChecklist3.Title, Is.EqualTo(createDto3.Title));
+
+        var checklistsAfter = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsAfter, Has.Count.EqualTo(3));
+
+        var checklist1 = checklistsAfter.Single(c => c.Id == 1);
+        Assert.That(checklist1, Is.EqualTo(createdChecklist1));
+
+        var checklist2 = checklistsAfter.Single(c => c.Id == 2);
+        Assert.That(checklist2, Is.EqualTo(createdChecklist2));
+
+        var checklist3 = checklistsAfter.Single(c => c.Id == 3);
+        Assert.That(checklist3, Is.EqualTo(createdChecklist3));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
+    }
+
+    [Test]
     public void StorageAccessIsThreadSafe()
     {
         // Arrange

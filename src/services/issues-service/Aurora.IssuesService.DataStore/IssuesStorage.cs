@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Aurora.IssuesService.DataStore;
@@ -22,6 +21,7 @@ public interface IIssuesStorage
 
     ChecklistReadDto CreateChecklist(int issueId, ChecklistCreateDto checklistCreateDto);
     IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId);
+    ChecklistReadDto UpdateChecklist(int id, ChecklistUpdateDto checklistUpdateDto);
     void DeleteChecklist(int id);
 }
 
@@ -259,6 +259,27 @@ public sealed class IssuesStorage : IIssuesStorage
             var issuesDatabase = ReadDatabaseFile();
             return issuesDatabase.Checklists.Where(c => c.IssueId == issueId).Select(c => c.ToReadDto()).ToArray();
         }
+    }
+
+    public ChecklistReadDto UpdateChecklist(int id, ChecklistUpdateDto checklistUpdateDto)
+    {
+        var issuesDatabase = ReadDatabaseFile();
+        var checklistToUpdate = issuesDatabase.GetChecklist(id);
+        var index = issuesDatabase.Checklists.IndexOf(checklistToUpdate);
+
+        checklistToUpdate = new DbChecklist
+        {
+            Id = checklistToUpdate.Id,
+            IssueId = checklistToUpdate.IssueId,
+            Title = checklistUpdateDto.Title
+        };
+
+        issuesDatabase.Checklists[index] = checklistToUpdate;
+        issuesDatabase.BumpIssueUpdatedDateTime(checklistToUpdate.IssueId);
+
+        WriteDatabaseFile(issuesDatabase);
+
+        return checklistToUpdate.ToReadDto();
     }
 
     public void DeleteChecklist(int id)

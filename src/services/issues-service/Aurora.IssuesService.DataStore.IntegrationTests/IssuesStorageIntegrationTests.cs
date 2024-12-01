@@ -40,6 +40,24 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+        var createDto = new IssueCreateDto
+        {
+            Title = "First issue",
+            Description = "This is the first issue.",
+            Status = "Open",
+            VersionId = 123
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateIssue(createDto), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
     public void CreateIssue_ShouldCreateNewIssue()
     {
         // Arrange
@@ -150,24 +168,6 @@ public class IssuesStorageIntegrationTests
 
         var issue3 = issuesAfter.Single(i => i.Id == 3);
         Assert.That(issue3, Is.EqualTo(createdIssue3));
-    }
-
-    [Test]
-    public void CreateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-        var createDto = new IssueCreateDto
-        {
-            Title = "First issue",
-            Description = "This is the first issue.",
-            Status = "Open",
-            VersionId = 123
-        };
-
-        // Act
-        // Assert
-        Assert.That(() => issuesStorage.CreateIssue(createDto), Throws.TypeOf<VersionNotFoundException>());
     }
 
     [Test]
@@ -386,6 +386,34 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void UpdateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var createDto = new IssueCreateDto
+        {
+            Title = "Issue to update",
+            Description = "This is will be updated.",
+            Status = "In Progress"
+        };
+
+        var createdIssue = issuesStorage.CreateIssue(createDto);
+
+        var updateDto = new IssueUpdateDto
+        {
+            Title = createDto.Title,
+            Description = createDto.Description,
+            Status = createDto.Status,
+            VersionId = 123
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => _ = issuesStorage.UpdateIssue(createdIssue.Id, updateDto), Throws.TypeOf<VersionNotFoundException>());
+    }
+
+    [Test]
     public void UpdateIssue_ShouldUpdateExistingIssue()
     {
         // Arrange
@@ -436,34 +464,6 @@ public class IssuesStorageIntegrationTests
 
         var issue2 = issuesStorage.GetIssue(createdIssue2.Id);
         Assert.That(issue2, Is.EqualTo(updatedIssue));
-    }
-
-    [Test]
-    public void UpdateIssue_ShouldThrowException_GivenVersionThatDoesNotExist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var createDto = new IssueCreateDto
-        {
-            Title = "Issue to update",
-            Description = "This is will be updated.",
-            Status = "In Progress"
-        };
-
-        var createdIssue = issuesStorage.CreateIssue(createDto);
-
-        var updateDto = new IssueUpdateDto
-        {
-            Title = createDto.Title,
-            Description = createDto.Description,
-            Status = createDto.Status,
-            VersionId = 123
-        };
-
-        // Act
-        // Assert
-        Assert.That(() => _ = issuesStorage.UpdateIssue(createdIssue.Id, updateDto), Throws.TypeOf<VersionNotFoundException>());
     }
 
     [Test]
@@ -979,6 +979,23 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateChecklist_ShouldThrowException_GivenSpecifiedIssueDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var notExistentIssueId = 123;
+        var createDto = new ChecklistCreateDto
+        {
+            Title = "Checklist title"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateChecklist(notExistentIssueId, createDto), Throws.TypeOf<IssueNotFoundException>());
+    }
+
+    [Test]
     public void CreateChecklist_ShouldCreateNewChecklistForSpecifiedIssue()
     {
         // Arrange
@@ -1079,23 +1096,6 @@ public class IssuesStorageIntegrationTests
 
         var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
         Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
-    }
-
-    [Test]
-    public void CreateChecklist_ShouldThrowException_GivenSpecifiedIssueDoesNotExist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var notExistentIssueId = 123;
-        var createDto = new ChecklistCreateDto
-        {
-            Title = "Checklist title"
-        };
-
-        // Act
-        // Assert
-        Assert.That(() => issuesStorage.CreateChecklist(notExistentIssueId, createDto), Throws.TypeOf<IssueNotFoundException>());
     }
 
     [Test]
@@ -1249,6 +1249,152 @@ public class IssuesStorageIntegrationTests
 
         var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
         Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeDelete.UpdatedDateTime));
+    }
+
+    [Test]
+    public void CreateChecklistItem_ShouldThrowException_GivenChecklistThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var notExistentChecklistId = 123;
+        var createDto = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item",
+            IsChecked = true
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateChecklistItem(notExistentChecklistId, createDto), Throws.TypeOf<ChecklistNotFound>());
+    }
+
+    [Test]
+    public void CreateChecklistItem_ShouldCreateNewChecklistItem_GivenSpecifiedChecklist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var checklistCreateDto = new ChecklistCreateDto
+        {
+            Title = "Checklist"
+        };
+        var checklist = issuesStorage.CreateChecklist(issueBefore.Id, checklistCreateDto);
+
+        var createDto = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item",
+            IsChecked = true
+        };
+
+        var issueBeforeCreate = issuesStorage.GetIssue(issueBefore.Id);
+
+        // Assume
+        var checklistItemsBefore = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsBefore, Is.Empty);
+
+        // Act
+        var createdChecklistItem = issuesStorage.CreateChecklistItem(checklist.Id, createDto);
+
+        // Assert
+        Assert.That(createdChecklistItem.Id, Is.EqualTo(1));
+        Assert.That(createdChecklistItem.Content, Is.EqualTo(createDto.Content));
+        Assert.That(createdChecklistItem.IsChecked, Is.EqualTo(createDto.IsChecked));
+
+        var checklistItemsAfter = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsAfter, Has.Count.EqualTo(1));
+
+        var checklistItem = checklistItemsAfter.Single(ci => ci.Id == 1);
+        Assert.That(checklistItem, Is.EqualTo(createdChecklistItem));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeCreate.UpdatedDateTime));
+    }
+
+    [Test]
+    public void CreateChecklistItem_ShouldCreateMultipleChecklistItemsForSpecifiedChecklist_WhenCalledMultipleTimes()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var checklistCreateDto = new ChecklistCreateDto
+        {
+            Title = "Checklist"
+        };
+        var checklist = issuesStorage.CreateChecklist(issueBefore.Id, checklistCreateDto);
+
+        var createDto1 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 1",
+            IsChecked = true
+        };
+
+        var createDto2 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 2",
+            IsChecked = false
+        };
+
+        var createDto3 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 3",
+            IsChecked = true
+        };
+
+        var issueBeforeCreate = issuesStorage.GetIssue(issueBefore.Id);
+
+        // Assume
+        var checklistItemsBefore = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsBefore, Is.Empty);
+
+        // Act
+        var createdChecklistItem1 = issuesStorage.CreateChecklistItem(checklist.Id, createDto1);
+        var createdChecklistItem2 = issuesStorage.CreateChecklistItem(checklist.Id, createDto2);
+        var createdChecklistItem3 = issuesStorage.CreateChecklistItem(checklist.Id, createDto3);
+
+        // Assert
+        Assert.That(createdChecklistItem1.Id, Is.EqualTo(1));
+        Assert.That(createdChecklistItem1.Content, Is.EqualTo(createDto1.Content));
+        Assert.That(createdChecklistItem1.IsChecked, Is.EqualTo(createDto1.IsChecked));
+
+        Assert.That(createdChecklistItem2.Id, Is.EqualTo(2));
+        Assert.That(createdChecklistItem2.Content, Is.EqualTo(createDto2.Content));
+        Assert.That(createdChecklistItem2.IsChecked, Is.EqualTo(createDto2.IsChecked));
+
+        Assert.That(createdChecklistItem3.Id, Is.EqualTo(3));
+        Assert.That(createdChecklistItem3.Content, Is.EqualTo(createDto3.Content));
+        Assert.That(createdChecklistItem3.IsChecked, Is.EqualTo(createDto3.IsChecked));
+
+        var checklistItemsAfter = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsAfter, Has.Count.EqualTo(3));
+
+        var checklistItem1 = checklistItemsAfter.Single(ci => ci.Id == 1);
+        Assert.That(checklistItem1, Is.EqualTo(createdChecklistItem1));
+
+        var checklistItem2 = checklistItemsAfter.Single(ci => ci.Id == 2);
+        Assert.That(checklistItem2, Is.EqualTo(createdChecklistItem2));
+
+        var checklistItem3 = checklistItemsAfter.Single(ci => ci.Id == 3);
+        Assert.That(checklistItem3, Is.EqualTo(createdChecklistItem3));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeCreate.UpdatedDateTime));
     }
 
     [Test]

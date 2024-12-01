@@ -23,6 +23,9 @@ public interface IIssuesStorage
     IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId);
     ChecklistReadDto UpdateChecklist(int id, ChecklistUpdateDto checklistUpdateDto);
     void DeleteChecklist(int id);
+
+    ChecklistItemReadDto CreateChecklistItem(int checklistId, ChecklistItemCreateDto checklistItemCreateDto);
+    IReadOnlyCollection<ChecklistItemReadDto> GetAllChecklistItems(int checklistId);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
@@ -64,7 +67,8 @@ public sealed class IssuesStorage : IIssuesStorage
                 Version = StorageUpgrade.CurrentVersion,
                 Issues = [],
                 Versions = [],
-                Checklists = []
+                Checklists = [],
+                ChecklistItems = []
             };
             WriteDatabaseFile(issuesDatabase);
         }
@@ -263,34 +267,75 @@ public sealed class IssuesStorage : IIssuesStorage
 
     public ChecklistReadDto UpdateChecklist(int id, ChecklistUpdateDto checklistUpdateDto)
     {
-        var issuesDatabase = ReadDatabaseFile();
-        var checklistToUpdate = issuesDatabase.GetChecklist(id);
-        var index = issuesDatabase.Checklists.IndexOf(checklistToUpdate);
-
-        checklistToUpdate = new DbChecklist
+        lock (_lock)
         {
-            Id = checklistToUpdate.Id,
-            IssueId = checklistToUpdate.IssueId,
-            Title = checklistUpdateDto.Title
-        };
+            var issuesDatabase = ReadDatabaseFile();
+            var checklistToUpdate = issuesDatabase.GetChecklist(id);
+            var index = issuesDatabase.Checklists.IndexOf(checklistToUpdate);
 
-        issuesDatabase.Checklists[index] = checklistToUpdate;
-        issuesDatabase.BumpIssueUpdatedDateTime(checklistToUpdate.IssueId);
+            checklistToUpdate = new DbChecklist
+            {
+                Id = checklistToUpdate.Id,
+                IssueId = checklistToUpdate.IssueId,
+                Title = checklistUpdateDto.Title
+            };
 
-        WriteDatabaseFile(issuesDatabase);
+            issuesDatabase.Checklists[index] = checklistToUpdate;
+            issuesDatabase.BumpIssueUpdatedDateTime(checklistToUpdate.IssueId);
 
-        return checklistToUpdate.ToReadDto();
+            WriteDatabaseFile(issuesDatabase);
+
+            return checklistToUpdate.ToReadDto();
+        }
     }
 
     public void DeleteChecklist(int id)
     {
-        var issuesDatabase = ReadDatabaseFile();
-        var checklistToDelete = issuesDatabase.GetChecklist(id);
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var checklistToDelete = issuesDatabase.GetChecklist(id);
 
-        issuesDatabase.Checklists.Remove(checklistToDelete);
-        issuesDatabase.BumpIssueUpdatedDateTime(checklistToDelete.IssueId);
+            issuesDatabase.Checklists.Remove(checklistToDelete);
+            issuesDatabase.BumpIssueUpdatedDateTime(checklistToDelete.IssueId);
 
-        WriteDatabaseFile(issuesDatabase);
+            WriteDatabaseFile(issuesDatabase);
+        }
+    }
+
+    public ChecklistItemReadDto CreateChecklistItem(int checklistId, ChecklistItemCreateDto checklistItemCreateDto)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var checklist = issuesDatabase.GetChecklist(checklistId);
+
+            var nextId = issuesDatabase.ChecklistItems.Count != 0 ? issuesDatabase.ChecklistItems.Max(ci => ci.Id) + 1 : 1;
+
+            var newChecklistItem = new DbChecklistItem
+            {
+                Id = nextId,
+                ChecklistId = checklistId,
+                Content = checklistItemCreateDto.Content,
+                IsChecked = checklistItemCreateDto.IsChecked
+            };
+
+            issuesDatabase.ChecklistItems.Add(newChecklistItem);
+            issuesDatabase.BumpIssueUpdatedDateTime(checklist.IssueId);
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return newChecklistItem.ToReadDto();
+        }
+    }
+
+    public IReadOnlyCollection<ChecklistItemReadDto> GetAllChecklistItems(int checklistId)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            return issuesDatabase.ChecklistItems.Where(ci => ci.ChecklistId == checklistId).Select(ci => ci.ToReadDto()).ToArray();
+        }
     }
 
     private IssuesDatabase ReadDatabaseFile()
@@ -311,6 +356,7 @@ public sealed class IssuesStorage : IIssuesStorage
         public required List<DbIssue> Issues { get; init; }
         public required List<DbVersion> Versions { get; init; }
         public required List<DbChecklist> Checklists { get; init; }
+        public required List<DbChecklistItem> ChecklistItems { get; init; }
 
         public DbIssue GetIssue(int id)
         {
@@ -396,6 +442,21 @@ public sealed class IssuesStorage : IIssuesStorage
         {
             Id = Id,
             Title = Title
+        };
+    }
+
+    private sealed class DbChecklistItem
+    {
+        public required int Id { get; init; }
+        public required int ChecklistId { get; init; }
+        public required string Content { get; init; }
+        public required bool IsChecked { get; init; }
+
+        public ChecklistItemReadDto ToReadDto() => new()
+        {
+            Id = Id,
+            Content = Content,
+            IsChecked = IsChecked
         };
     }
 }

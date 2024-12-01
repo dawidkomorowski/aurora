@@ -1082,6 +1082,23 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void CreateChecklist_ShouldThrowException_GivenSpecifiedIssueDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var notExistentIssueId = 123;
+        var createDto = new ChecklistCreateDto
+        {
+            Title = "Checklist title"
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.CreateChecklist(notExistentIssueId, createDto), Throws.TypeOf<IssueNotFoundException>());
+    }
+
+    [Test]
     public void StorageAccessIsThreadSafe()
     {
         // Arrange

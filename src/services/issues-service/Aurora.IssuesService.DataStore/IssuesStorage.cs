@@ -22,6 +22,7 @@ public interface IIssuesStorage
 
     ChecklistReadDto CreateChecklist(int issueId, ChecklistCreateDto checklistCreateDto);
     IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId);
+    void DeleteChecklist(int id);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
@@ -29,6 +30,8 @@ public sealed class IssueNotFoundException() : Exception("Issue not found.");
 public sealed class VersionNotFoundException() : Exception("Version not found.");
 
 public sealed class VersionAlreadyExistsException() : Exception("Version already exists.");
+
+public sealed class ChecklistNotFound() : Exception("Checklist not found.");
 
 public sealed class IssuesStorage : IIssuesStorage
 {
@@ -127,8 +130,6 @@ public sealed class IssuesStorage : IIssuesStorage
             var issueToUpdate = issuesDatabase.GetIssue(id);
             var index = issuesDatabase.Issues.IndexOf(issueToUpdate);
 
-            var utcNow = DateTime.UtcNow;
-
             int? versionId = null;
             if (issueUpdateDto.VersionId.HasValue)
             {
@@ -142,7 +143,7 @@ public sealed class IssuesStorage : IIssuesStorage
                 Description = issueUpdateDto.Description,
                 Status = issueUpdateDto.Status,
                 CreatedDateTime = issueToUpdate.CreatedDateTime,
-                UpdatedDateTime = utcNow,
+                UpdatedDateTime = DateTime.UtcNow,
                 VersionId = versionId
             };
 
@@ -232,11 +233,8 @@ public sealed class IssuesStorage : IIssuesStorage
         lock (_lock)
         {
             var issuesDatabase = ReadDatabaseFile();
-            var issueToUpdate = issuesDatabase.GetIssue(issueId);
-            var issueIndex = issuesDatabase.Issues.IndexOf(issueToUpdate);
 
             var nextId = issuesDatabase.Checklists.Count != 0 ? issuesDatabase.Checklists.Max(c => c.Id) + 1 : 1;
-            var utcNow = DateTime.UtcNow;
 
             var newChecklist = new DbChecklist
             {
@@ -246,19 +244,7 @@ public sealed class IssuesStorage : IIssuesStorage
             };
 
             issuesDatabase.Checklists.Add(newChecklist);
-
-            issueToUpdate = new DbIssue
-            {
-                Id = issueToUpdate.Id,
-                Title = issueToUpdate.Title,
-                Description = issueToUpdate.Description,
-                Status = issueToUpdate.Status,
-                CreatedDateTime = issueToUpdate.CreatedDateTime,
-                UpdatedDateTime = utcNow,
-                VersionId = issueToUpdate.VersionId
-            };
-
-            issuesDatabase.Issues[issueIndex] = issueToUpdate;
+            issuesDatabase.BumpIssueUpdatedDateTime(issueId);
 
             WriteDatabaseFile(issuesDatabase);
 
@@ -273,6 +259,17 @@ public sealed class IssuesStorage : IIssuesStorage
             var issuesDatabase = ReadDatabaseFile();
             return issuesDatabase.Checklists.Where(c => c.IssueId == issueId).Select(c => c.ToReadDto()).ToArray();
         }
+    }
+
+    public void DeleteChecklist(int id)
+    {
+        var issuesDatabase = ReadDatabaseFile();
+        var checklistToDelete = issuesDatabase.GetChecklist(id);
+
+        issuesDatabase.Checklists.Remove(checklistToDelete);
+        issuesDatabase.BumpIssueUpdatedDateTime(checklistToDelete.IssueId);
+
+        WriteDatabaseFile(issuesDatabase);
     }
 
     private IssuesDatabase ReadDatabaseFile()
@@ -299,6 +296,25 @@ public sealed class IssuesStorage : IIssuesStorage
             return Issues.SingleOrDefault(i => i.Id == id) ?? throw new IssueNotFoundException();
         }
 
+        public void BumpIssueUpdatedDateTime(int id)
+        {
+            var issueToUpdate = GetIssue(id);
+            var issueIndex = Issues.IndexOf(issueToUpdate);
+
+            issueToUpdate = new DbIssue
+            {
+                Id = issueToUpdate.Id,
+                Title = issueToUpdate.Title,
+                Description = issueToUpdate.Description,
+                Status = issueToUpdate.Status,
+                CreatedDateTime = issueToUpdate.CreatedDateTime,
+                UpdatedDateTime = DateTime.UtcNow,
+                VersionId = issueToUpdate.VersionId
+            };
+
+            Issues[issueIndex] = issueToUpdate;
+        }
+
         public DbVersion GetVersion(int id)
         {
             return Versions.SingleOrDefault(v => v.Id == id) ?? throw new VersionNotFoundException();
@@ -307,6 +323,11 @@ public sealed class IssuesStorage : IIssuesStorage
         public bool IsVersionNameUnique(string versionName)
         {
             return Versions.All(v => v.Name != versionName);
+        }
+
+        public DbChecklist GetChecklist(int id)
+        {
+            return Checklists.SingleOrDefault(c => c.Id == id) ?? throw new ChecklistNotFound();
         }
     }
 

@@ -1099,6 +1099,75 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void DeleteChecklist_ShouldThrowException_GivenChecklistThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var notExistentChecklistId = 123;
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.DeleteChecklist(notExistentChecklistId), Throws.TypeOf<ChecklistNotFound>());
+    }
+
+    [Test]
+    public void DeleteChecklist_ShouldDeleteExistingChecklist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var createDto1 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 1"
+        };
+
+        var createDto2 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 2"
+        };
+
+        var createDto3 = new ChecklistCreateDto
+        {
+            Title = "Checklist title 3"
+        };
+
+        var createdChecklist1 = issuesStorage.CreateChecklist(issueBefore.Id, createDto1);
+        var createdChecklist2 = issuesStorage.CreateChecklist(issueBefore.Id, createDto2);
+        var createdChecklist3 = issuesStorage.CreateChecklist(issueBefore.Id, createDto3);
+
+        var issueBeforeDelete = issuesStorage.GetIssue(issueBefore.Id);
+
+        // Assume
+        var checklistsBefore = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsBefore, Has.Count.EqualTo(3));
+
+        // Act
+        issuesStorage.DeleteChecklist(createdChecklist2.Id);
+
+        // Assert
+        var checklistsAfter = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsAfter, Has.Count.EqualTo(2));
+
+        var checklist1 = checklistsAfter.Single(c => c.Id == createdChecklist1.Id);
+        Assert.That(checklist1, Is.EqualTo(createdChecklist1));
+
+        var checklist3 = checklistsAfter.Single(c => c.Id == createdChecklist3.Id);
+        Assert.That(checklist3, Is.EqualTo(createdChecklist3));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeDelete.UpdatedDateTime));
+    }
+
+    [Test]
     public void StorageAccessIsThreadSafe()
     {
         // Arrange

@@ -1252,6 +1252,71 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void DeleteChecklist_ShouldDeleteRelatedChecklistItems()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var checklistCreateDto = new ChecklistCreateDto
+        {
+            Title = "Checklist"
+        };
+        var checklist = issuesStorage.CreateChecklist(issueBefore.Id, checklistCreateDto);
+
+        var createDto1 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 1",
+            IsChecked = true
+        };
+
+        var createDto2 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 2",
+            IsChecked = false
+        };
+
+        var createDto3 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 3",
+            IsChecked = true
+        };
+
+        issuesStorage.CreateChecklistItem(checklist.Id, createDto1);
+        issuesStorage.CreateChecklistItem(checklist.Id, createDto2);
+        issuesStorage.CreateChecklistItem(checklist.Id, createDto3);
+
+        var issueBeforeDelete = issuesStorage.GetIssue(issueBefore.Id);
+
+        // Assume
+        var checklistsBefore = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsBefore, Has.Count.EqualTo(1));
+
+        var checklistItemsBefore = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsBefore, Has.Count.EqualTo(3));
+
+        // Act
+        issuesStorage.DeleteChecklist(checklist.Id);
+
+        // Assert
+        var checklistsAfter = issuesStorage.GetAllChecklists(issueBefore.Id);
+        Assert.That(checklistsAfter, Is.Empty);
+
+        var checklistItemsAfter = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsAfter, Is.Empty);
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeDelete.UpdatedDateTime));
+    }
+
+    [Test]
     public void CreateChecklistItem_ShouldThrowException_GivenChecklistThatDoesNotExist()
     {
         // Arrange

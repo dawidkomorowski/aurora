@@ -292,7 +292,6 @@ public sealed class IssuesStorage : IIssuesStorage
         }
     }
 
-    // TODO It should remove all related checklist items. How can it be tested?
     public void DeleteChecklist(int id)
     {
         lock (_lock)
@@ -301,6 +300,7 @@ public sealed class IssuesStorage : IIssuesStorage
             var checklistToDelete = issuesDatabase.GetChecklist(id);
 
             issuesDatabase.Checklists.Remove(checklistToDelete);
+            issuesDatabase.ChecklistItems.RemoveAll(ci => ci.ChecklistId == id);
             issuesDatabase.BumpIssueUpdatedDateTime(checklistToDelete.IssueId);
 
             WriteDatabaseFile(issuesDatabase);

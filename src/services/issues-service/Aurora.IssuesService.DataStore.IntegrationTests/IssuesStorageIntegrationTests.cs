@@ -1463,6 +1463,102 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
+    public void UpdateChecklistItem_ShouldThrowException_GivenChecklistItemThatDoesNotExist()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var notExistentChecklistItemId = 123;
+        var updateDto = new ChecklistItemUpdateDto
+        {
+            Content = "Checklist item",
+            IsChecked = true
+        };
+
+        // Act
+        // Assert
+        Assert.That(() => issuesStorage.UpdateChecklistItem(notExistentChecklistItemId, updateDto), Throws.TypeOf<ChecklistItemNotFound>());
+    }
+
+    [Test]
+    public void UpdateChecklistItem_ShouldUpdateExistingChecklistItem()
+    {
+        // Arrange
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        var issueCreateDto = new IssueCreateDto
+        {
+            Title = "Issue for checklist tests",
+            Description = "This issue is used to test checklists feature.",
+            Status = "In Progress"
+        };
+        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
+
+        var checklistCreateDto = new ChecklistCreateDto
+        {
+            Title = "Checklist"
+        };
+        var checklist = issuesStorage.CreateChecklist(issueBefore.Id, checklistCreateDto);
+
+        var createDto1 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 1",
+            IsChecked = true
+        };
+
+        var createDto2 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 2",
+            IsChecked = false
+        };
+
+        var createDto3 = new ChecklistItemCreateDto
+        {
+            Content = "Checklist item 3",
+            IsChecked = true
+        };
+
+        var createdChecklistItem1 = issuesStorage.CreateChecklistItem(checklist.Id, createDto1);
+        var createdChecklistItem2 = issuesStorage.CreateChecklistItem(checklist.Id, createDto2);
+        var createdChecklistItem3 = issuesStorage.CreateChecklistItem(checklist.Id, createDto3);
+
+        var updateDto = new ChecklistItemUpdateDto
+        {
+            Content = "Checklist item with updated content",
+            IsChecked = true
+        };
+
+        var issueBeforeUpdate = issuesStorage.GetIssue(issueBefore.Id);
+
+        // Assume
+        var checklistItemsBefore = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsBefore, Has.Count.EqualTo(3));
+
+        // Act
+        var updatedChecklistItem2 = issuesStorage.UpdateChecklistItem(createdChecklistItem2.Id, updateDto);
+
+        // Assert
+        Assert.That(updatedChecklistItem2.Id, Is.EqualTo(createdChecklistItem2.Id));
+        Assert.That(updatedChecklistItem2.Content, Is.EqualTo(updateDto.Content));
+        Assert.That(updatedChecklistItem2.IsChecked, Is.EqualTo(updateDto.IsChecked));
+
+        var checklistItemsAfter = issuesStorage.GetAllChecklistItems(checklist.Id);
+        Assert.That(checklistItemsAfter, Has.Count.EqualTo(3));
+
+        var checklistItem1 = checklistItemsAfter.Single(ci => ci.Id == 1);
+        Assert.That(checklistItem1, Is.EqualTo(createdChecklistItem1));
+
+        var checklistItem2 = checklistItemsAfter.Single(ci => ci.Id == 2);
+        Assert.That(checklistItem2, Is.EqualTo(updatedChecklistItem2));
+
+        var checklistItem3 = checklistItemsAfter.Single(ci => ci.Id == 3);
+        Assert.That(checklistItem3, Is.EqualTo(createdChecklistItem3));
+
+        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeUpdate.UpdatedDateTime));
+    }
+
+    [Test]
     public void DeleteChecklistItem_ShouldThrowException_GivenChecklistItemThatDoesNotExist()
     {
         // Arrange

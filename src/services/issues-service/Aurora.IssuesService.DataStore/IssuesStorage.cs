@@ -26,6 +26,7 @@ public interface IIssuesStorage
 
     ChecklistItemReadDto CreateChecklistItem(int checklistId, ChecklistItemCreateDto checklistItemCreateDto);
     IReadOnlyCollection<ChecklistItemReadDto> GetAllChecklistItems(int checklistId);
+    ChecklistItemReadDto UpdateChecklistItem(int id, ChecklistItemUpdateDto checklistItemUpdateDto);
     void DeleteChecklistItem(int id);
 }
 
@@ -339,6 +340,32 @@ public sealed class IssuesStorage : IIssuesStorage
         {
             var issuesDatabase = ReadDatabaseFile();
             return issuesDatabase.ChecklistItems.Where(ci => ci.ChecklistId == checklistId).Select(ci => ci.ToReadDto()).ToArray();
+        }
+    }
+
+    public ChecklistItemReadDto UpdateChecklistItem(int id, ChecklistItemUpdateDto checklistItemUpdateDto)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var checklistItemToUpdate = issuesDatabase.GetChecklistItem(id);
+            var checklist = issuesDatabase.GetChecklist(checklistItemToUpdate.ChecklistId);
+            var index = issuesDatabase.ChecklistItems.IndexOf(checklistItemToUpdate);
+
+            checklistItemToUpdate = new DbChecklistItem
+            {
+                Id = checklistItemToUpdate.Id,
+                ChecklistId = checklistItemToUpdate.ChecklistId,
+                Content = checklistItemUpdateDto.Content,
+                IsChecked = checklistItemUpdateDto.IsChecked
+            };
+
+            issuesDatabase.ChecklistItems[index] = checklistItemToUpdate;
+            issuesDatabase.BumpIssueUpdatedDateTime(checklist.IssueId);
+
+            WriteDatabaseFile(issuesDatabase);
+
+            return checklistItemToUpdate.ToReadDto();
         }
     }
 

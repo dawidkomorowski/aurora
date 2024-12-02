@@ -28,3 +28,9 @@ public sealed record ChecklistItemReadDto
     public required string Content { get; init; }
     public required bool IsChecked { get; init; }
 }
+
+public sealed record ChecklistItemUpdateDto
+{
+    public required string Content { get; init; }
+    public required bool IsChecked { get; init; }
+}

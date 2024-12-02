@@ -26,6 +26,7 @@ public interface IIssuesStorage
 
     ChecklistItemReadDto CreateChecklistItem(int checklistId, ChecklistItemCreateDto checklistItemCreateDto);
     IReadOnlyCollection<ChecklistItemReadDto> GetAllChecklistItems(int checklistId);
+    void DeleteChecklistItem(int id);
 }
 
 public sealed class IssueNotFoundException() : Exception("Issue not found.");
@@ -35,6 +36,8 @@ public sealed class VersionNotFoundException() : Exception("Version not found.")
 public sealed class VersionAlreadyExistsException() : Exception("Version already exists.");
 
 public sealed class ChecklistNotFound() : Exception("Checklist not found.");
+
+public sealed class ChecklistItemNotFound() : Exception("Checklist item not found.");
 
 public sealed class IssuesStorage : IIssuesStorage
 {
@@ -289,6 +292,7 @@ public sealed class IssuesStorage : IIssuesStorage
         }
     }
 
+    // TODO It should remove all related checklist items. How can it be tested?
     public void DeleteChecklist(int id)
     {
         lock (_lock)
@@ -335,6 +339,21 @@ public sealed class IssuesStorage : IIssuesStorage
         {
             var issuesDatabase = ReadDatabaseFile();
             return issuesDatabase.ChecklistItems.Where(ci => ci.ChecklistId == checklistId).Select(ci => ci.ToReadDto()).ToArray();
+        }
+    }
+
+    public void DeleteChecklistItem(int id)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var checklistItemToDelete = issuesDatabase.GetChecklistItem(id);
+            var checklist = issuesDatabase.GetChecklist(checklistItemToDelete.ChecklistId);
+
+            issuesDatabase.ChecklistItems.Remove(checklistItemToDelete);
+            issuesDatabase.BumpIssueUpdatedDateTime(checklist.IssueId);
+
+            WriteDatabaseFile(issuesDatabase);
         }
     }
 
@@ -395,6 +414,11 @@ public sealed class IssuesStorage : IIssuesStorage
         public DbChecklist GetChecklist(int id)
         {
             return Checklists.SingleOrDefault(c => c.Id == id) ?? throw new ChecklistNotFound();
+        }
+
+        public DbChecklistItem GetChecklistItem(int id)
+        {
+            return ChecklistItems.SingleOrDefault(ci => ci.Id == id) ?? throw new ChecklistItemNotFound();
         }
     }
 

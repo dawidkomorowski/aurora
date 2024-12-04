@@ -36,7 +36,7 @@ public class IssuesStorageUpgradeIntegrationTests
 
         // Assert
         var databaseVersion = GetDatabaseVersion(_temporaryStorageFilePath);
-        Assert.That(databaseVersion, Is.EqualTo(2));
+        Assert.That(databaseVersion, Is.EqualTo(3));
 
         var issues = issuesStorage.GetAllIssues();
         Assert.That(issues, Has.Count.EqualTo(2));
@@ -44,10 +44,39 @@ public class IssuesStorageUpgradeIntegrationTests
         foreach (var issue in issues)
         {
             Assert.That(issue.Version, Is.Null);
+
+            var checklists = issuesStorage.GetAllChecklists(issue.Id);
+            Assert.That(checklists, Is.Empty);
         }
 
         var versions = issuesStorage.GetAllVersions();
         Assert.That(versions, Is.Empty);
+    }
+
+    [Test]
+    public void UpgradeFromVersion2()
+    {
+        // Arrange
+        CopyTestFile("v2-issues-db.json");
+
+        // Act
+        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
+
+        // Assert
+        var databaseVersion = GetDatabaseVersion(_temporaryStorageFilePath);
+        Assert.That(databaseVersion, Is.EqualTo(3));
+
+        var issues = issuesStorage.GetAllIssues();
+        Assert.That(issues, Has.Count.EqualTo(18));
+
+        foreach (var issue in issues)
+        {
+            var checklists = issuesStorage.GetAllChecklists(issue.Id);
+            Assert.That(checklists, Is.Empty);
+        }
+
+        var versions = issuesStorage.GetAllVersions();
+        Assert.That(versions, Has.Count.EqualTo(18));
     }
 
     private void CopyTestFile(string fileName)

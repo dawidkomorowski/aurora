@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Aurora.IssuesService.DataStore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Aurora.IssuesService.Host.Controllers;
 
@@ -19,88 +20,42 @@ public sealed class ChecklistItemResponse
 }
 
 [ApiController]
-[Route("api/issues/{issueId:int}/checklists")]
+[Route("api")]
 public sealed class ChecklistController : ControllerBase
 {
-    private readonly ILogger<ChecklistController> _logger;
+    private readonly IIssuesStorage _issuesStorage;
 
-    public ChecklistController(ILogger<ChecklistController> logger)
+    public ChecklistController(IIssuesStorage issuesStorage)
     {
-        _logger = logger;
+        _issuesStorage = issuesStorage;
     }
 
 
-    [HttpGet]
+    [HttpGet("issues/{issueId:int}/checklists")]
     public IEnumerable<ChecklistResponse> GetAll(int issueId)
     {
-        _logger.LogInformation("Issue ID: {issueId}", issueId);
+        var checklists = _issuesStorage.GetAllChecklists(issueId);
 
-        var checklist1 = new ChecklistResponse
+        var result = checklists.Select(c =>
         {
-            Id = 1,
-            Title = "Checklist from API",
-            Items =
-            [
-                new ChecklistItemResponse
-                {
-                    Id = 1,
-                    Content = "Item 1 from API",
-                    IsChecked = true
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 2,
-                    Content = "Item 2 from API",
-                    IsChecked = false
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 3,
-                    Content = "Item 3 from API",
-                    IsChecked = true
-                }
-            ]
-        };
+            var items = _issuesStorage.GetAllChecklistItems(c.Id)
+                .Select(ci =>
+                    new ChecklistItemResponse
+                    {
+                        Id = ci.Id,
+                        Content = ci.Content,
+                        IsChecked = ci.IsChecked
+                    }
+                ).ToArray();
 
-        var checklist2 = new ChecklistResponse
-        {
-            Id = 2,
-            Title = "Acceptance criteria",
-            Items =
-            [
-                new ChecklistItemResponse
-                {
-                    Id = 4,
-                    Content = "Implement feature.",
-                    IsChecked = true
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 5,
-                    Content = "Add unit tests.",
-                    IsChecked = true
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 6,
-                    Content = "Merge to main branch.",
-                    IsChecked = false
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 7,
-                    Content = "Manual testing.",
-                    IsChecked = false
-                },
-                new ChecklistItemResponse
-                {
-                    Id = 8,
-                    Content = "Deploy to DEV.",
-                    IsChecked = false
-                }
-            ]
-        };
+            return new ChecklistResponse
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Items = items
+            };
+        });
 
-        return [checklist1, checklist2];
+        return result;
     }
 }

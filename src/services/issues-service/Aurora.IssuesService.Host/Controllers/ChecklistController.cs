@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Aurora.IssuesService.DataStore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
@@ -57,5 +60,25 @@ public sealed class ChecklistController : ControllerBase
         });
 
         return result;
+    }
+
+    [HttpPost("issues/{issueId:int}/checklists")]
+    public Results<NotFound, Created> Create(int issueId)
+    {
+        try
+        {
+            var checklistCreateDto = new ChecklistCreateDto
+            {
+                Title = "New checklist"
+            };
+
+            _issuesStorage.CreateChecklist(issueId, checklistCreateDto);
+
+            return TypedResults.Created();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
     }
 }

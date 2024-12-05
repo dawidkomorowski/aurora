@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Checklist } from "./Checklist";
 import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
+import { NewChecklist } from "./NewChecklist";
 
 export function ChecklistsSection({ issueId }) {
     const [checklists, setChecklists] = useState([]);
+    const [isAddingNewChecklist, setIsAddingNewChecklist] = useState(false);
 
     useEffect(() => {
         ChecklistApiClient.getAll(issueId).then(responseData => {
@@ -12,6 +14,18 @@ export function ChecklistsSection({ issueId }) {
             console.error(error);
         });
     }, []);
+
+    function handleAddButtonClick() {
+        setIsAddingNewChecklist(true);
+    }
+
+    function handleCreate(title) {
+        setIsAddingNewChecklist(false);
+    }
+
+    function handleCancel() {
+        setIsAddingNewChecklist(false);
+    }
 
     const checklistElements = checklists.map(c => {
         return (
@@ -24,11 +38,22 @@ export function ChecklistsSection({ issueId }) {
     return (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
-                <div>
-                    <strong>Checklists</strong>
+                <div style={{ display: "flex" }}>
+                    <div>
+                        <strong>Checklists</strong>
+                    </div>
+                    <div style={{ marginLeft: "auto" }}>
+                        <button onClick={handleAddButtonClick}>Add</button>
+                    </div>
                 </div>
-                {checklistElements}
+                <div>
+                    {checklistElements}
+                </div>
+                <div style={{ marginTop: "10px" }}>
+                    {isAddingNewChecklist ? <NewChecklist onCreate={handleCreate} onCancel={handleCancel} /> : <></>}
+                </div>
             </div>
         </div >
     );
 }
+

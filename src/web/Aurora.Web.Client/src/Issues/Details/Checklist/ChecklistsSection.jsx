@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Checklist } from "./Checklist";
 import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
 import { NewChecklist } from "./NewChecklist";
+import { ApiValidationError } from "../../../ApiClients/ApiValidationError";
 
 export function ChecklistsSection({ issueId }) {
     const [checklists, setChecklists] = useState([]);
@@ -20,7 +21,18 @@ export function ChecklistsSection({ issueId }) {
     }
 
     function handleCreate(title) {
-        setIsAddingNewChecklist(false);
+        ChecklistApiClient.createChecklist(issueId, title).then(() => {
+            setIsAddingNewChecklist(false);
+        }).catch(error => {
+            if (error instanceof ApiValidationError) {
+                //setValidationErrors([...validationErrors, ...error.errorMessages]);
+                console.error("!!! ApiValidationError !!!");
+                console.error(error);
+            }
+            else {
+                console.error(error);
+            }
+        });
     }
 
     function handleCancel() {

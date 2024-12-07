@@ -7,6 +7,7 @@ import { ApiValidationError } from "../../../ApiClients/ApiValidationError";
 export function ChecklistsSection({ issueId }) {
     const [checklists, setChecklists] = useState([]);
     const [isAddingNewChecklist, setIsAddingNewChecklist] = useState(false);
+    const [validationError, setValidationError] = useState(null);
 
     useEffect(() => {
         refreshChecklists();
@@ -26,13 +27,12 @@ export function ChecklistsSection({ issueId }) {
 
     function handleCreate(title) {
         ChecklistApiClient.createChecklist(issueId, title).then(() => {
+            setValidationError(null);
             setIsAddingNewChecklist(false);
             refreshChecklists();
         }).catch(error => {
             if (error instanceof ApiValidationError) {
-                //setValidationErrors([...validationErrors, ...error.errorMessages]);
-                console.error("!!! ApiValidationError !!!");
-                console.error(error);
+                setValidationError(error.errorMessages[0]);
             }
             else {
                 console.error(error);
@@ -41,6 +41,7 @@ export function ChecklistsSection({ issueId }) {
     }
 
     function handleCancel() {
+        setValidationError(null);
         setIsAddingNewChecklist(false);
     }
 
@@ -61,6 +62,15 @@ export function ChecklistsSection({ issueId }) {
         )
     }
 
+    let validationErrorElement = <></>
+    if (validationError) {
+        validationErrorElement = (
+            <div style={{ color: "red" }}>
+                {validationError}
+            </div>
+        );
+    }
+
     return (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
@@ -76,6 +86,7 @@ export function ChecklistsSection({ issueId }) {
                     {checklistElements}
                 </div>
                 {newChecklistElement}
+                {validationErrorElement}
             </div>
         </div >
     );

@@ -9,12 +9,16 @@ export function ChecklistsSection({ issueId }) {
     const [isAddingNewChecklist, setIsAddingNewChecklist] = useState(false);
 
     useEffect(() => {
+        refreshChecklists();
+    }, []);
+
+    function refreshChecklists() {
         ChecklistApiClient.getAll(issueId).then(responseData => {
             setChecklists(responseData);
         }).catch(error => {
             console.error(error);
         });
-    }, []);
+    }
 
     function handleAddButtonClick() {
         setIsAddingNewChecklist(true);
@@ -23,6 +27,7 @@ export function ChecklistsSection({ issueId }) {
     function handleCreate(title) {
         ChecklistApiClient.createChecklist(issueId, title).then(() => {
             setIsAddingNewChecklist(false);
+            refreshChecklists();
         }).catch(error => {
             if (error instanceof ApiValidationError) {
                 //setValidationErrors([...validationErrors, ...error.errorMessages]);
@@ -47,6 +52,15 @@ export function ChecklistsSection({ issueId }) {
         );
     });
 
+    let newChecklistElement = <></>
+    if (isAddingNewChecklist) {
+        newChecklistElement = (
+            <div style={{ marginTop: "10px" }}>
+                <NewChecklist onCreate={handleCreate} onCancel={handleCancel} />
+            </div>
+        )
+    }
+
     return (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <div style={{ width: "50%", backgroundColor: "lightgray", padding: "10px" }}>
@@ -61,9 +75,7 @@ export function ChecklistsSection({ issueId }) {
                 <div>
                     {checklistElements}
                 </div>
-                <div style={{ marginTop: "10px" }}>
-                    {isAddingNewChecklist ? <NewChecklist onCreate={handleCreate} onCancel={handleCancel} /> : <></>}
-                </div>
+                {newChecklistElement}
             </div>
         </div >
     );

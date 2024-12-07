@@ -218,3 +218,11 @@ Content-Type: application/json
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues/2/checklists
 
 ###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues/18/checklists
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues/0/checklists
+
+###

@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Aurora.IssuesService.DataStore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aurora.IssuesService.Host.Controllers;
@@ -17,6 +20,12 @@ public sealed class ChecklistItemResponse
     public required int Id { get; init; }
     public required string Content { get; init; }
     public required bool IsChecked { get; init; }
+}
+
+public sealed class CreateChecklistRequest
+{
+    [Required(AllowEmptyStrings = false)]
+    public string Title { get; set; } = string.Empty;
 }
 
 [ApiController]
@@ -57,5 +66,25 @@ public sealed class ChecklistController : ControllerBase
         });
 
         return result;
+    }
+
+    [HttpPost("issues/{issueId:int}/checklists")]
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created> Create(int issueId, CreateChecklistRequest createChecklistRequest)
+    {
+        try
+        {
+            var checklistCreateDto = new ChecklistCreateDto
+            {
+                Title = createChecklistRequest.Title.Trim()
+            };
+
+            _issuesStorage.CreateChecklist(issueId, checklistCreateDto);
+
+            return TypedResults.Created();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
     }
 }

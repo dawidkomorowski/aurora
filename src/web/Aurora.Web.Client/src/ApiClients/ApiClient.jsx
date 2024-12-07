@@ -4,7 +4,7 @@ export class ApiClient {
     static fetch(url, requestInit) {
         return fetch(url, requestInit).then(async (response) => {
             if (!response.ok) {
-                if (ApiClient.#hasJsonBody(response)) {
+                if (ApiClient.#hasJsonContentType(response)) {
                     const errorResponse = await response.json();
 
                     if (ApiValidationError.isValidationError(errorResponse)) {
@@ -15,7 +15,7 @@ export class ApiClient {
                 throw new Error(`Response status: ${response.status}`);
             }
 
-            if (ApiClient.#hasJsonBody(response)) {
+            if (ApiClient.#hasJsonContentType(response)) {
                 return response.json();
             }
 
@@ -23,8 +23,8 @@ export class ApiClient {
         });
     }
 
-    static #hasJsonBody(response) {
+    static #hasJsonContentType(response) {
         const contentType = response.headers.get("content-type");
-        return contentType && contentType.includes("application/json");
+        return contentType && (contentType.includes("application/json") || contentType.includes("application/problem+json"));
     }
 }

@@ -20,8 +20,6 @@ export class ChecklistApiClient {
             }
         };
 
-        // TODO Invesitage SyntaxError: JSON.parse: unexpected end of data at line 1 column 1 of the JSON data.
-        // Probably the reason is the service responding with 201 and no JSON data that is tried to be parse in ApiClient.
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${issueId}/checklists`, requestInit);
     }
 }

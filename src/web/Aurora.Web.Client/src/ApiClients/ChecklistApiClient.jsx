@@ -6,4 +6,20 @@ export class ChecklistApiClient {
     static getAll(issueId) {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${issueId}/checklists`)
     }
+
+    static createChecklist(issueId, title) {
+        const createChecklistRequest = {
+            title: title
+        };
+
+        const requestInit = {
+            method: "POST",
+            body: JSON.stringify(createChecklistRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${issueId}/checklists`, requestInit);
+    }
 }

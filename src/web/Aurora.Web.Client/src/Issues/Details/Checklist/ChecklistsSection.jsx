@@ -45,10 +45,20 @@ export function ChecklistsSection({ issueId }) {
         setIsAddingNewChecklist(false);
     }
 
+    function handleRemove(id) {
+        if (window.confirm("Selected checklist will be removed. Do you want to continue?")) {
+            ChecklistApiClient.removeChecklist(id).then(() => {
+                refreshChecklists();
+            }).catch(error => {
+                console.error(error);
+            });
+        }
+    }
+
     const checklistElements = checklists.map(c => {
         return (
             <div key={c.id} style={{ marginTop: "10px" }}>
-                <Checklist checklist={c} />
+                <Checklist checklist={c} onRemove={handleRemove} />
             </div>
         );
     });

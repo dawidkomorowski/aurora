@@ -46,7 +46,7 @@ export function ChecklistsSection({ issueId }) {
     }
 
     function handleRemove(id) {
-        if (window.confirm("Selected checklist will be deleted. Do you want to continue?")) {
+        if (window.confirm("Selected checklist will be removed. Do you want to continue?")) {
             ChecklistApiClient.removeChecklist(id).then(() => {
                 refreshChecklists();
             }).catch(error => {

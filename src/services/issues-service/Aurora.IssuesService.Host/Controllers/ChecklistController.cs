@@ -69,7 +69,7 @@ public sealed class ChecklistController : ControllerBase
     }
 
     [HttpPost("issues/{issueId:int}/checklists")]
-    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created> Create(int issueId, CreateChecklistRequest createChecklistRequest)
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created> CreateChecklist(int issueId, CreateChecklistRequest createChecklistRequest)
     {
         try
         {
@@ -81,6 +81,25 @@ public sealed class ChecklistController : ControllerBase
             _issuesStorage.CreateChecklist(issueId, checklistCreateDto);
 
             return TypedResults.Created();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
+
+    [HttpDelete("checklists/{id:int}")]
+    public Results<NotFound, NoContent> DeleteChecklist(int id)
+    {
+        try
+        {
+            _issuesStorage.DeleteChecklist(id);
+
+            return TypedResults.NoContent();
+        }
+        catch (ChecklistNotFound)
+        {
+            return TypedResults.NotFound();
         }
         catch (IssueNotFoundException)
         {

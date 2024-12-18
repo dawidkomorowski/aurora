@@ -215,14 +215,43 @@ Content-Type: application/json
 
 ### Issues/Checklists
 
-GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues/2/checklists
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/issues/18/checklists
 
 ###
 
 POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues/18/checklists
+Content-Type: application/json
+
+{
+  "title": "Checklist - {{$guid}}"
+}
 
 ###
 
 POST {{Aurora.IssuesService.Host_HostAddress}}/api/issues/0/checklists
+Content-Type: application/json
+
+{
+  "title": "Checklist - {{$guid}}"
+}
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/1
+Content-Type: application/json
+
+{
+  "title": "Checklist - {{$guid}}"
+}
+
+###
+
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/0
+Content-Type: application/json
+
+{
+  "title": "Checklist - {{$guid}}"
+}
 
 ###

@@ -1112,7 +1112,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.UpdateChecklist(notExistentChecklistId, updateDto), Throws.TypeOf<ChecklistNotFound>());
+        Assert.That(() => issuesStorage.UpdateChecklist(notExistentChecklistId, updateDto), Throws.TypeOf<ChecklistNotFoundException>());
     }
 
     [Test]
@@ -1192,7 +1192,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.DeleteChecklist(notExistentChecklistId), Throws.TypeOf<ChecklistNotFound>());
+        Assert.That(() => issuesStorage.DeleteChecklist(notExistentChecklistId), Throws.TypeOf<ChecklistNotFoundException>());
     }
 
     [Test]
@@ -1331,7 +1331,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.CreateChecklistItem(notExistentChecklistId, createDto), Throws.TypeOf<ChecklistNotFound>());
+        Assert.That(() => issuesStorage.CreateChecklistItem(notExistentChecklistId, createDto), Throws.TypeOf<ChecklistNotFoundException>());
     }
 
     [Test]
@@ -1477,7 +1477,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.UpdateChecklistItem(notExistentChecklistItemId, updateDto), Throws.TypeOf<ChecklistItemNotFound>());
+        Assert.That(() => issuesStorage.UpdateChecklistItem(notExistentChecklistItemId, updateDto), Throws.TypeOf<ChecklistItemNotFoundException>());
     }
 
     [Test]
@@ -1568,7 +1568,7 @@ public class IssuesStorageIntegrationTests
 
         // Act
         // Assert
-        Assert.That(() => issuesStorage.DeleteChecklistItem(notExistentChecklistItemId), Throws.TypeOf<ChecklistItemNotFound>());
+        Assert.That(() => issuesStorage.DeleteChecklistItem(notExistentChecklistItemId), Throws.TypeOf<ChecklistItemNotFoundException>());
     }
 
     [Test]

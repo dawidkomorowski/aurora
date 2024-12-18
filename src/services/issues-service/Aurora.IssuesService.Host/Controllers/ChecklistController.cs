@@ -28,6 +28,12 @@ public sealed class CreateChecklistRequest
     public string Title { get; set; } = string.Empty;
 }
 
+public sealed class UpdateChecklistRequest
+{
+    [Required(AllowEmptyStrings = false)]
+    public string Title { get; set; } = string.Empty;
+}
+
 [ApiController]
 [Route("api")]
 public sealed class ChecklistController : ControllerBase
@@ -44,28 +50,7 @@ public sealed class ChecklistController : ControllerBase
     public IEnumerable<ChecklistResponse> GetAll(int issueId)
     {
         var checklists = _issuesStorage.GetAllChecklists(issueId);
-
-        var result = checklists.Select(c =>
-        {
-            var items = _issuesStorage.GetAllChecklistItems(c.Id)
-                .Select(ci =>
-                    new ChecklistItemResponse
-                    {
-                        Id = ci.Id,
-                        Content = ci.Content,
-                        IsChecked = ci.IsChecked
-                    }
-                ).ToArray();
-
-            return new ChecklistResponse
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Items = items
-            };
-        });
-
-        return result;
+        return checklists.Select(Convert);
     }
 
     [HttpPost("issues/{issueId:int}/checklists")]
@@ -88,6 +73,30 @@ public sealed class ChecklistController : ControllerBase
         }
     }
 
+    [HttpPut("checklists/{id:int}")]
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Ok<ChecklistResponse>> UpdateChecklist(int id, UpdateChecklistRequest updateChecklistRequest)
+    {
+        try
+        {
+            var checklistUpdateDto = new ChecklistUpdateDto
+            {
+                Title = updateChecklistRequest.Title.Trim()
+            };
+
+            var updatedChecklist = _issuesStorage.UpdateChecklist(id, checklistUpdateDto);
+
+            return TypedResults.Ok(Convert(updatedChecklist));
+        }
+        catch (ChecklistNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
+
     [HttpDelete("checklists/{id:int}")]
     public Results<NotFound, NoContent> DeleteChecklist(int id)
     {
@@ -97,7 +106,7 @@ public sealed class ChecklistController : ControllerBase
 
             return TypedResults.NoContent();
         }
-        catch (ChecklistNotFound)
+        catch (ChecklistNotFoundException)
         {
             return TypedResults.NotFound();
         }
@@ -105,5 +114,25 @@ public sealed class ChecklistController : ControllerBase
         {
             return TypedResults.NotFound();
         }
+    }
+
+    private ChecklistResponse Convert(ChecklistReadDto checklistReadDto)
+    {
+        var items = _issuesStorage.GetAllChecklistItems(checklistReadDto.Id)
+            .Select(ci =>
+                new ChecklistItemResponse
+                {
+                    Id = ci.Id,
+                    Content = ci.Content,
+                    IsChecked = ci.IsChecked
+                }
+            ).ToArray();
+
+        return new ChecklistResponse
+        {
+            Id = checklistReadDto.Id,
+            Title = checklistReadDto.Title,
+            Items = items
+        };
     }
 }

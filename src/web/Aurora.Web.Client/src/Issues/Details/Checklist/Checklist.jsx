@@ -3,8 +3,13 @@ import { ChecklistItem } from "./ChecklistItem";
 
 export function Checklist({ checklist, onRemove }) {
     const [editMode, setEditMode] = useState(false);
+    const [title, setTitle] = useState(checklist.title);
 
-    const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
+    // TODO useEffect might be needed for checklist to refresh the state "title" when provided props are changed.
+
+    function handleTitleInput(event) {
+        setTitle(event.target.value);
+    }
 
     function handleEditButtonClick() {
         setEditMode(true);
@@ -16,6 +21,7 @@ export function Checklist({ checklist, onRemove }) {
 
     function handleCancelButtonClick() {
         setEditMode(false);
+        setTitle(checklist.title);
     }
 
     function handleRemoveButtonClick() {
@@ -28,7 +34,7 @@ export function Checklist({ checklist, onRemove }) {
     if (editMode) {
         content = (
             <>
-                <input type="text" style={{ width: "100%", boxSizing: "border-box" }} />
+                <input type="text" value={title} onInput={handleTitleInput} style={{ width: "100%", boxSizing: "border-box" }} />
             </>
         );
 
@@ -54,6 +60,8 @@ export function Checklist({ checklist, onRemove }) {
             </>
         );
     }
+
+    const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
 
     return (
         <div style={{ borderStyle: "solid", borderWidth: "2px", padding: "10px" }}>

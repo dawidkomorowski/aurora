@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
+import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
 
-export function Checklist({ checklist, onUpdate, onRemove }) {
+export function Checklist({ checklist, onUpdate, onRemoved }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
 
@@ -28,7 +29,13 @@ export function Checklist({ checklist, onUpdate, onRemove }) {
     }
 
     function handleRemoveButtonClick() {
-        onRemove(checklist.id);
+        if (window.confirm("Selected checklist will be removed. Do you want to continue?")) {
+            ChecklistApiClient.removeChecklist(checklist.id).then(() => {
+                onRemoved();
+            }).catch(error => {
+                console.error(error);
+            });
+        }
     }
 
     let content;

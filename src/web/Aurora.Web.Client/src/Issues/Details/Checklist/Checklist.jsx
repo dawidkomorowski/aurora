@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 
 export function Checklist({ checklist, onUpdate, onRemove }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
 
-    // TODO useEffect might be needed for checklist to refresh the state "title" when provided props are changed.
+    useEffect(() => {
+        setTitle(checklist.title);
+    }, [checklist.title]);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);

@@ -23,6 +23,22 @@ export class ChecklistApiClient {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/issues/${issueId}/checklists`, requestInit);
     }
 
+    static updateChecklist(id, title) {
+        const updateChecklistRequest = {
+            title: title
+        };
+
+        const requestInit = {
+            method: "PUT",
+            body: JSON.stringify(updateChecklistRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/${id}`, requestInit);
+    }
+
     static removeChecklist(id) {
         const requestInit = {
             method: "DELETE"

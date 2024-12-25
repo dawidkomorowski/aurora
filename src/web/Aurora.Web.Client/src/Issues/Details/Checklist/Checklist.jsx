@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 
-export function Checklist({ checklist, onRemove }) {
+export function Checklist({ checklist, onUpdate, onRemove }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
 
@@ -16,6 +16,7 @@ export function Checklist({ checklist, onRemove }) {
     }
 
     function handleSaveButtonClick() {
+        onUpdate(checklist.id, title);
         setEditMode(false);
     }
 

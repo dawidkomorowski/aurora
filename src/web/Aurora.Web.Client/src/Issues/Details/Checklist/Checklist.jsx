@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
 
-export function Checklist({ checklist, onUpdate, onRemoved }) {
+export function Checklist({ checklist, onRemoved }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
-
-    useEffect(() => {
-        setTitle(checklist.title);
-    }, [checklist.title]);
+    const [previousTitle, setPreviousTitle] = useState(checklist.title);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);
@@ -19,13 +16,19 @@ export function Checklist({ checklist, onUpdate, onRemoved }) {
     }
 
     function handleSaveButtonClick() {
-        onUpdate(checklist.id, title);
-        setEditMode(false);
+        ChecklistApiClient.updateChecklist(checklist.id, title).then(responseData => {
+            setEditMode(false);
+            setTitle(responseData.title);
+            setPreviousTitle(responseData.title);
+        }).catch(error => {
+            console.error(error);
+        });
+
     }
 
     function handleCancelButtonClick() {
         setEditMode(false);
-        setTitle(checklist.title);
+        setTitle(previousTitle);
     }
 
     function handleRemoveButtonClick() {
@@ -58,7 +61,7 @@ export function Checklist({ checklist, onUpdate, onRemoved }) {
     else {
         content = (
             <>
-                <strong>{checklist.title}</strong>
+                <strong>{title}</strong>
             </>
         );
 
@@ -89,4 +92,3 @@ export function Checklist({ checklist, onUpdate, onRemoved }) {
         </div>
     );
 }
-

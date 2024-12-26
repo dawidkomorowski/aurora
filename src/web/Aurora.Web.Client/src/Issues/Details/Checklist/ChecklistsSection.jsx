@@ -45,14 +45,6 @@ export function ChecklistsSection({ issueId }) {
         setIsAddingNewChecklist(false);
     }
 
-    function handleUpdate(id, title) {
-        ChecklistApiClient.updateChecklist(id, title).then(() => {
-            refreshChecklists();
-        }).catch(error => {
-            console.error(error);
-        });
-    }
-
     function handleChecklistRemoved() {
         refreshChecklists();
     }
@@ -60,7 +52,7 @@ export function ChecklistsSection({ issueId }) {
     const checklistElements = checklists.map(c => {
         return (
             <div key={c.id} style={{ marginTop: "10px" }}>
-                <Checklist checklist={c} onUpdate={handleUpdate} onRemoved={handleChecklistRemoved} />
+                <Checklist checklist={c} onRemoved={handleChecklistRemoved} />
             </div>
         );
     });

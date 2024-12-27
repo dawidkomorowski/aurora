@@ -46,4 +46,20 @@ export class ChecklistApiClient {
 
         return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/${id}`, requestInit);
     }
+
+    static createChecklistItem(checklistId, content) {
+        const createChecklistItemRequest = {
+            content: content
+        }
+
+        const requestInit = {
+            method: "POST",
+            body: JSON.stringify(createChecklistItemRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/${checklistId}/items`, requestInit);
+    }
 }

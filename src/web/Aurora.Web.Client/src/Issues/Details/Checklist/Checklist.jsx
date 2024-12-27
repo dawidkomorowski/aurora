@@ -56,12 +56,16 @@ export function Checklist({ checklist, onRemoved }) {
         }
     }
 
-    function handleAddItemCancelButtonClick() {
-        setIsAddingNewItem(false);
+    function handleAddItemCreateButtonClick(content) {
+        ChecklistApiClient.createChecklistItem(checklist.id, content).then(() => {
+            // TODO Refresh checklist state.
+            setIsAddingNewItem(false);
+        }).catch(error => {
+            console.error(error);
+        });
     }
 
-    function handleAddItemCreateButtonClick(content) {
-        console.log(content);
+    function handleAddItemCancelButtonClick() {
         setIsAddingNewItem(false);
     }
 

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
+import { ApiValidationError } from "../../../ApiClients/ApiValidationError";
 
 export function Checklist({ checklist, onRemoved }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
     const [previousTitle, setPreviousTitle] = useState(checklist.title);
+    const [validationError, setValidationError] = useState(null);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);
@@ -18,16 +20,23 @@ export function Checklist({ checklist, onRemoved }) {
     function handleSaveButtonClick() {
         ChecklistApiClient.updateChecklist(checklist.id, title).then(responseData => {
             setEditMode(false);
+            setValidationError(null);
             setTitle(responseData.title);
             setPreviousTitle(responseData.title);
         }).catch(error => {
-            console.error(error);
+            if (error instanceof ApiValidationError) {
+                setValidationError(error.errorMessages[0]);
+            }
+            else {
+                console.error(error);
+            }
         });
 
     }
 
     function handleCancelButtonClick() {
         setEditMode(false);
+        setValidationError(null);
         setTitle(previousTitle);
     }
 
@@ -74,6 +83,15 @@ export function Checklist({ checklist, onRemoved }) {
         );
     }
 
+    let validationErrorElement = <></>
+    if (validationError) {
+        validationErrorElement = (
+            <div style={{ color: "red" }}>
+                {validationError}
+            </div>
+        );
+    }
+
     const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
 
     return (
@@ -81,6 +99,7 @@ export function Checklist({ checklist, onRemoved }) {
             <div style={{ display: "flex" }}>
                 <div style={{ flexGrow: "1", marginRight: "10px" }}>
                     {content}
+                    {validationErrorElement}
                 </div>
                 <div style={{ marginLeft: "auto" }}>
                     {buttons}

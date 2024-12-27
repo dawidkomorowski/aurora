@@ -255,3 +255,21 @@ Content-Type: application/json
 }
 
 ###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/1/items
+Content-Type: application/json
+
+{
+  "content": "Checklist item - {{$guid}}"
+}
+
+###
+
+POST {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/0/items
+Content-Type: application/json
+
+{
+  "content": "Checklist item - {{$guid}}"
+}
+
+###

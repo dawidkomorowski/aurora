@@ -34,6 +34,12 @@ public sealed class UpdateChecklistRequest
     public string Title { get; set; } = string.Empty;
 }
 
+public sealed class CreateChecklistItemRequest
+{
+    [Required(AllowEmptyStrings = true)]
+    public string Content { get; set; } = string.Empty;
+}
+
 [ApiController]
 [Route("api")]
 public sealed class ChecklistController : ControllerBase
@@ -105,6 +111,32 @@ public sealed class ChecklistController : ControllerBase
             _issuesStorage.DeleteChecklist(id);
 
             return TypedResults.NoContent();
+        }
+        catch (ChecklistNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
+
+    [HttpPost("checklists/{checklistId:int}/items")]
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created> CreateChecklistItem(int checklistId,
+        CreateChecklistItemRequest createChecklistItemRequest)
+    {
+        try
+        {
+            var checklistItemCreateDto = new ChecklistItemCreateDto
+            {
+                Content = createChecklistItemRequest.Content.Trim(),
+                IsChecked = false
+            };
+
+            _issuesStorage.CreateChecklistItem(checklistId, checklistItemCreateDto);
+
+            return TypedResults.Created();
         }
         catch (ChecklistNotFoundException)
         {

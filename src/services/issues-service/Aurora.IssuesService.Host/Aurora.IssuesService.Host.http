@@ -273,3 +273,11 @@ Content-Type: application/json
 }
 
 ###
+
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/1
+
+###
+
+GET {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/0
+
+###

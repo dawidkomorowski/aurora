@@ -20,6 +20,7 @@ public interface IIssuesStorage
     VersionReadDto UpdateVersion(int id, VersionUpdateDto versionUpdateDto);
 
     ChecklistReadDto CreateChecklist(int issueId, ChecklistCreateDto checklistCreateDto);
+    ChecklistReadDto GetChecklist(int id);
     IReadOnlyCollection<ChecklistReadDto> GetAllChecklists(int issueId);
     ChecklistReadDto UpdateChecklist(int id, ChecklistUpdateDto checklistUpdateDto);
     void DeleteChecklist(int id);
@@ -257,6 +258,16 @@ public sealed class IssuesStorage : IIssuesStorage
             WriteDatabaseFile(issuesDatabase);
 
             return newChecklist.ToReadDto();
+        }
+    }
+
+    public ChecklistReadDto GetChecklist(int id)
+    {
+        lock (_lock)
+        {
+            var issuesDatabase = ReadDatabaseFile();
+            var checklist = issuesDatabase.GetChecklist(id);
+            return checklist.ToReadDto();
         }
     }
 

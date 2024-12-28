@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Aurora.IssuesService.DataStore;
@@ -51,6 +52,20 @@ public sealed class ChecklistController : ControllerBase
         _issuesStorage = issuesStorage;
     }
 
+
+    [HttpGet("checklists/{id:int}")]
+    public Results<NotFound, Ok<ChecklistResponse>> Get(int id)
+    {
+        try
+        {
+            var checklist = _issuesStorage.GetChecklist(id);
+            return TypedResults.Ok(Convert(checklist));
+        }
+        catch (ChecklistNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
 
     [HttpGet("issues/{issueId:int}/checklists")]
     public IEnumerable<ChecklistResponse> GetAll(int issueId)

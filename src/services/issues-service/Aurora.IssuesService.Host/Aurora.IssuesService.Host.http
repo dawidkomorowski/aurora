@@ -281,3 +281,11 @@ GET {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/1
 GET {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/0
 
 ###
+
+DELETE {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/items/4
+
+###
+
+DELETE {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/items/0
+
+###

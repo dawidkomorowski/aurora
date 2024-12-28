@@ -10,6 +10,7 @@ export function Checklist({ checklist, onRemoved }) {
     const [previousTitle, setPreviousTitle] = useState(checklist.title);
     const [validationError, setValidationError] = useState(null);
     const [isAddingNewItem, setIsAddingNewItem] = useState(false);
+    const [items, setItems] = useState(checklist.items);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);
@@ -21,6 +22,7 @@ export function Checklist({ checklist, onRemoved }) {
 
     function handleEditButtonClick() {
         setEditMode(true);
+        setIsAddingNewItem(false);
     }
 
     function handleSaveButtonClick() {
@@ -29,6 +31,7 @@ export function Checklist({ checklist, onRemoved }) {
             setValidationError(null);
             setTitle(responseData.title);
             setPreviousTitle(responseData.title);
+            setItems(responseData.items);
         }).catch(error => {
             if (error instanceof ApiValidationError) {
                 setValidationError(error.errorMessages[0]);
@@ -58,8 +61,13 @@ export function Checklist({ checklist, onRemoved }) {
 
     function handleAddItemCreateButtonClick(content) {
         ChecklistApiClient.createChecklistItem(checklist.id, content).then(() => {
-            // TODO Refresh checklist state.
             setIsAddingNewItem(false);
+
+            return ChecklistApiClient.get(checklist.id);
+        }).then(responseData => {
+            setTitle(responseData.title);
+            setPreviousTitle(responseData.title);
+            setItems(responseData.items);
         }).catch(error => {
             console.error(error);
         });
@@ -111,7 +119,7 @@ export function Checklist({ checklist, onRemoved }) {
         );
     }
 
-    const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
+    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
 
     let newItemElement = <></>
     if (isAddingNewItem) {
@@ -134,7 +142,7 @@ export function Checklist({ checklist, onRemoved }) {
                 </div>
             </div>
             <div>
-                {items}
+                {itemElements}
             </div>
             {newItemElement}
         </div>

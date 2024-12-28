@@ -1,8 +1,12 @@
 import styles from "./ChecklistItem.module.css"
 
-export function ChecklistItem({ id, content, isChecked }) {
+export function ChecklistItem({ id, content, isChecked, onRemove }) {
 
     function handleInput() {
+    }
+
+    function handleRemoveButtonClick() {
+        onRemove(id);
     }
 
     return (
@@ -13,7 +17,7 @@ export function ChecklistItem({ id, content, isChecked }) {
             <div>{content}</div>
             <div style={{ marginLeft: "auto" }}>
                 <button>Edit</button>
-                <button style={{ marginLeft: "5px" }}>Remove</button>
+                <button onClick={handleRemoveButtonClick} style={{ marginLeft: "5px" }}>Remove</button>
             </div>
         </div>
     );

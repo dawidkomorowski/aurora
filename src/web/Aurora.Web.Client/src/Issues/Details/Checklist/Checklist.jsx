@@ -80,11 +80,13 @@ export function Checklist({ checklist, onRemoved }) {
     }
 
     function handleItemRemove(checklistItemId) {
-        ChecklistApiClient.removeChecklistItem(checklistItemId)
-            .then(refreshChecklist)
-            .catch(error => {
-                console.error(error);
-            });
+        if (window.confirm("Selected checklist item will be removed. Do you want to continue?")) {
+            ChecklistApiClient.removeChecklistItem(checklistItemId)
+                .then(refreshChecklist)
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     }
 
     let content;

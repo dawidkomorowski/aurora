@@ -36,9 +36,9 @@ public sealed class VersionNotFoundException() : Exception("Version not found.")
 
 public sealed class VersionAlreadyExistsException() : Exception("Version already exists.");
 
-public sealed class ChecklistNotFound() : Exception("Checklist not found.");
+public sealed class ChecklistNotFoundException() : Exception("Checklist not found.");
 
-public sealed class ChecklistItemNotFound() : Exception("Checklist item not found.");
+public sealed class ChecklistItemNotFoundException() : Exception("Checklist item not found.");
 
 public sealed class IssuesStorage : IIssuesStorage
 {
@@ -440,12 +440,12 @@ public sealed class IssuesStorage : IIssuesStorage
 
         public DbChecklist GetChecklist(int id)
         {
-            return Checklists.SingleOrDefault(c => c.Id == id) ?? throw new ChecklistNotFound();
+            return Checklists.SingleOrDefault(c => c.Id == id) ?? throw new ChecklistNotFoundException();
         }
 
         public DbChecklistItem GetChecklistItem(int id)
         {
-            return ChecklistItems.SingleOrDefault(ci => ci.Id == id) ?? throw new ChecklistItemNotFound();
+            return ChecklistItems.SingleOrDefault(ci => ci.Id == id) ?? throw new ChecklistItemNotFoundException();
         }
     }
 

@@ -12,6 +12,14 @@ export function Checklist({ checklist, onRemoved }) {
     const [isAddingNewItem, setIsAddingNewItem] = useState(false);
     const [items, setItems] = useState(checklist.items);
 
+    function refreshChecklist() {
+        return ChecklistApiClient.get(checklist.id).then(responseData => {
+            setTitle(responseData.title);
+            setPreviousTitle(responseData.title);
+            setItems(responseData.items);
+        });
+    }
+
     function handleTitleInput(event) {
         setTitle(event.target.value);
     }
@@ -62,19 +70,23 @@ export function Checklist({ checklist, onRemoved }) {
     function handleAddItemCreateButtonClick(content) {
         ChecklistApiClient.createChecklistItem(checklist.id, content).then(() => {
             setIsAddingNewItem(false);
-
-            return ChecklistApiClient.get(checklist.id);
-        }).then(responseData => {
-            setTitle(responseData.title);
-            setPreviousTitle(responseData.title);
-            setItems(responseData.items);
-        }).catch(error => {
+        }).then(refreshChecklist).catch(error => {
             console.error(error);
         });
     }
 
     function handleAddItemCancelButtonClick() {
         setIsAddingNewItem(false);
+    }
+
+    function handleItemRemove(checklistItemId) {
+        if (window.confirm("Selected checklist item will be removed. Do you want to continue?")) {
+            ChecklistApiClient.removeChecklistItem(checklistItemId)
+                .then(refreshChecklist)
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     }
 
     let content;
@@ -119,7 +131,7 @@ export function Checklist({ checklist, onRemoved }) {
         );
     }
 
-    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
+    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} onRemove={handleItemRemove} />);
 
     let newItemElement = <></>
     if (isAddingNewItem) {

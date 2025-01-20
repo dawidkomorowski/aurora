@@ -163,6 +163,28 @@ public sealed class ChecklistController : ControllerBase
         }
     }
 
+    [HttpDelete("checklists/items/{id:int}")]
+    public Results<NotFound, NoContent> DeleteChecklistItem(int id)
+    {
+        try
+        {
+            _issuesStorage.DeleteChecklistItem(id);
+            return TypedResults.NoContent();
+        }
+        catch (ChecklistItemNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (ChecklistNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
+
     private ChecklistResponse Convert(ChecklistReadDto checklistReadDto)
     {
         var items = _issuesStorage.GetAllChecklistItems(checklistReadDto.Id)

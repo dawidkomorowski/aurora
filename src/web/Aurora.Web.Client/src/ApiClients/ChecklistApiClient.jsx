@@ -66,4 +66,12 @@ export class ChecklistApiClient {
 
         return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/${checklistId}/items`, requestInit);
     }
+
+    static removeChecklistItem(id) {
+        const requestInit = {
+            method: "DELETE"
+        };
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/items/${id}`, requestInit);
+    }
 }

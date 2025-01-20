@@ -2,19 +2,27 @@ import { useState } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 import { ChecklistApiClient } from "../../../ApiClients/ChecklistApiClient";
 import { ApiValidationError } from "../../../ApiClients/ApiValidationError";
+import { NewChecklistItem } from "./NewChecklistItem";
 
 export function Checklist({ checklist, onRemoved }) {
     const [editMode, setEditMode] = useState(false);
     const [title, setTitle] = useState(checklist.title);
     const [previousTitle, setPreviousTitle] = useState(checklist.title);
     const [validationError, setValidationError] = useState(null);
+    const [isAddingNewItem, setIsAddingNewItem] = useState(false);
+    const [items, setItems] = useState(checklist.items);
 
     function handleTitleInput(event) {
         setTitle(event.target.value);
     }
 
+    function handleAddItemButtonClick() {
+        setIsAddingNewItem(true);
+    }
+
     function handleEditButtonClick() {
         setEditMode(true);
+        setIsAddingNewItem(false);
     }
 
     function handleSaveButtonClick() {
@@ -23,6 +31,7 @@ export function Checklist({ checklist, onRemoved }) {
             setValidationError(null);
             setTitle(responseData.title);
             setPreviousTitle(responseData.title);
+            setItems(responseData.items);
         }).catch(error => {
             if (error instanceof ApiValidationError) {
                 setValidationError(error.errorMessages[0]);
@@ -48,6 +57,24 @@ export function Checklist({ checklist, onRemoved }) {
                 console.error(error);
             });
         }
+    }
+
+    function handleAddItemCreateButtonClick(content) {
+        ChecklistApiClient.createChecklistItem(checklist.id, content).then(() => {
+            setIsAddingNewItem(false);
+
+            return ChecklistApiClient.get(checklist.id);
+        }).then(responseData => {
+            setTitle(responseData.title);
+            setPreviousTitle(responseData.title);
+            setItems(responseData.items);
+        }).catch(error => {
+            console.error(error);
+        });
+    }
+
+    function handleAddItemCancelButtonClick() {
+        setIsAddingNewItem(false);
     }
 
     let content;
@@ -76,7 +103,7 @@ export function Checklist({ checklist, onRemoved }) {
 
         buttons = (
             <>
-                <button>Add item</button>
+                <button onClick={handleAddItemButtonClick}>Add item</button>
                 <button onClick={handleEditButtonClick} style={{ marginLeft: "5px" }}>Edit</button>
                 <button onClick={handleRemoveButtonClick} style={{ marginLeft: "5px" }}>Remove</button>
             </>
@@ -92,7 +119,16 @@ export function Checklist({ checklist, onRemoved }) {
         );
     }
 
-    const items = checklist.items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
+    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} />);
+
+    let newItemElement = <></>
+    if (isAddingNewItem) {
+        newItemElement = (
+            <div style={{ marginTop: "10px" }}>
+                <NewChecklistItem onCreate={handleAddItemCreateButtonClick} onCancel={handleAddItemCancelButtonClick} />
+            </div>
+        );
+    }
 
     return (
         <div style={{ borderStyle: "solid", borderWidth: "2px", padding: "10px" }}>
@@ -106,8 +142,9 @@ export function Checklist({ checklist, onRemoved }) {
                 </div>
             </div>
             <div>
-                {items}
+                {itemElements}
             </div>
+            {newItemElement}
         </div>
     );
 }

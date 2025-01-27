@@ -1,14 +1,15 @@
 import { useState } from "react";
 import styles from "./ChecklistItem.module.css"
 
-export function ChecklistItem({ id, content, isChecked, onRemove }) {
+export function ChecklistItem({ id, content, isChecked, onUpdate, onRemove }) {
     const [editMode, setEditMode] = useState(false);
+    const [currentContent, setCurrentContent] = useState(content);
 
     function handleIsCheckedInput() {
     }
 
-    function handleContentInput() {
-
+    function handleContentInput(event) {
+        setCurrentContent(event.target.value);
     }
 
     function handleEditButtonClick() {
@@ -20,10 +21,13 @@ export function ChecklistItem({ id, content, isChecked, onRemove }) {
     }
 
     function handleSaveButtonClick() {
+        setEditMode(false);
+        onUpdate(id, isChecked, currentContent);
     }
 
     function handleCancelButtonClick() {
         setEditMode(false);
+        setCurrentContent(content);
     }
 
     let contentElement;
@@ -32,7 +36,7 @@ export function ChecklistItem({ id, content, isChecked, onRemove }) {
     if (editMode) {
         contentElement = (
             <>
-                <input type="text" value={content} onInput={handleContentInput} style={{ width: "100%", boxSizing: "border-box" }} />
+                <input type="text" value={currentContent} onInput={handleContentInput} style={{ width: "100%", boxSizing: "border-box" }} />
             </>
         );
 

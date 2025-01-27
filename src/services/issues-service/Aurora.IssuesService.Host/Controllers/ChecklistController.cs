@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Aurora.IssuesService.DataStore;
@@ -39,6 +38,14 @@ public sealed class CreateChecklistItemRequest
 {
     [Required(AllowEmptyStrings = true)]
     public string Content { get; set; } = string.Empty;
+}
+
+public sealed class UpdateChecklistItemRequest
+{
+    [Required(AllowEmptyStrings = true)]
+    public string Content { get; set; } = string.Empty;
+
+    public bool IsChecked { get; set; }
 }
 
 [ApiController]
@@ -152,6 +159,35 @@ public sealed class ChecklistController : ControllerBase
             _issuesStorage.CreateChecklistItem(checklistId, checklistItemCreateDto);
 
             return TypedResults.Created();
+        }
+        catch (ChecklistNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (IssueNotFoundException)
+        {
+            return TypedResults.NotFound();
+        }
+    }
+
+    [HttpPut("checklists/items/{id:int}")]
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, NoContent> UpdateChecklistItem(int id, UpdateChecklistItemRequest updateChecklistItemRequest)
+    {
+        try
+        {
+            var checklistItemUpdateDto = new ChecklistItemUpdateDto
+            {
+                Content = updateChecklistItemRequest.Content.Trim(),
+                IsChecked = updateChecklistItemRequest.IsChecked
+            };
+
+            _issuesStorage.UpdateChecklistItem(id, checklistItemUpdateDto);
+
+            return TypedResults.NoContent();
+        }
+        catch (ChecklistItemNotFoundException)
+        {
+            return TypedResults.NotFound();
         }
         catch (ChecklistNotFoundException)
         {

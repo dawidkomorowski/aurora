@@ -246,7 +246,6 @@ Content-Type: application/json
 
 ###
 
-
 PUT {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/0
 Content-Type: application/json
 
@@ -287,5 +286,15 @@ DELETE {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/items/4
 ###
 
 DELETE {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/items/0
+
+###
+
+PUT {{Aurora.IssuesService.Host_HostAddress}}/api/checklists/items/19
+Content-Type: application/json
+
+{
+  "content": "Checklist item - {{$guid}}",
+  "isChecked": true
+}
 
 ###

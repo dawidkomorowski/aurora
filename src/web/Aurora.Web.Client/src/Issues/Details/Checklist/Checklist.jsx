@@ -79,6 +79,14 @@ export function Checklist({ checklist, onRemoved }) {
         setIsAddingNewItem(false);
     }
 
+    function handleItemUpdate(id, content, isChecked) {
+        ChecklistApiClient.updateChecklistItem(id, content, isChecked)
+            .then(refreshChecklist)
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
     function handleItemRemove(checklistItemId) {
         if (window.confirm("Selected checklist item will be removed. Do you want to continue?")) {
             ChecklistApiClient.removeChecklistItem(checklistItemId)
@@ -131,7 +139,7 @@ export function Checklist({ checklist, onRemoved }) {
         );
     }
 
-    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} onRemove={handleItemRemove} />);
+    const itemElements = items.map(i => <ChecklistItem key={i.id} id={i.id} content={i.content} isChecked={i.isChecked} onUpdate={handleItemUpdate} onRemove={handleItemRemove} />);
 
     let newItemElement = <></>
     if (isAddingNewItem) {

@@ -67,6 +67,23 @@ export class ChecklistApiClient {
         return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/${checklistId}/items`, requestInit);
     }
 
+    static updateChecklistItem(id, content, isChecked) {
+        const updateChecklistItemRequest = {
+            content: content,
+            isChecked: isChecked
+        };
+
+        const requestInit = {
+            method: "PUT",
+            body: JSON.stringify(updateChecklistItemRequest),
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return ApiClient.fetch(`${this.#issuesServiceUrl}/checklists/items/${id}`, requestInit);
+    }
+
     static removeChecklistItem(id) {
         const requestInit = {
             method: "DELETE"

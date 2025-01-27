@@ -79,8 +79,12 @@ export function Checklist({ checklist, onRemoved }) {
         setIsAddingNewItem(false);
     }
 
-    function handleItemUpdate(id, isChecked, content) {
-        console.log("handleItemUpdate:", id, isChecked, content);
+    function handleItemUpdate(id, content, isChecked) {
+        ChecklistApiClient.updateChecklistItem(id, content, isChecked)
+            .then(refreshChecklist)
+            .catch(error => {
+                console.error(error);
+            });
     }
 
     function handleItemRemove(checklistItemId) {

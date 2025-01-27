@@ -22,7 +22,7 @@ export function ChecklistItem({ id, content, isChecked, onUpdate, onRemove }) {
 
     function handleSaveButtonClick() {
         setEditMode(false);
-        onUpdate(id, isChecked, currentContent);
+        onUpdate(id, currentContent, isChecked);
     }
 
     function handleCancelButtonClick() {

@@ -6,6 +6,7 @@ export function ChecklistItem({ id, content, isChecked, onUpdate, onRemove }) {
     const [currentContent, setCurrentContent] = useState(content);
 
     function handleIsCheckedInput() {
+        onUpdate(id, content, !isChecked);
     }
 
     function handleContentInput(event) {

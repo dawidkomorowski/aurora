@@ -77,7 +77,7 @@ public sealed class ChecklistController : ControllerBase
     [HttpGet("issues/{issueId:int}/checklists")]
     public IEnumerable<ChecklistResponse> GetAll(int issueId)
     {
-        var checklists = _issuesStorage.GetAllChecklists(issueId);
+        var checklists = _issuesStorage.GetAllChecklists(issueId).OrderBy(c => c.Id);
         return checklists.Select(Convert);
     }
 
@@ -224,6 +224,7 @@ public sealed class ChecklistController : ControllerBase
     private ChecklistResponse Convert(ChecklistReadDto checklistReadDto)
     {
         var items = _issuesStorage.GetAllChecklistItems(checklistReadDto.Id)
+            .OrderBy(ci => ci.Id)
             .Select(ci =>
                 new ChecklistItemResponse
                 {

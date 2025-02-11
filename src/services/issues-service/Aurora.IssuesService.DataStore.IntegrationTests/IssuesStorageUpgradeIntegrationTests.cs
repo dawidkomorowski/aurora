@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
+using NUnit.Framework;
 
 namespace Aurora.IssuesService.DataStore.IntegrationTests;
 

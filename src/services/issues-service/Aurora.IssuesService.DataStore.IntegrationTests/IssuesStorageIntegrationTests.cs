@@ -19,7 +19,7 @@ public class IssuesStorageIntegrationTests
         _temporaryDirectoryPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "TempDir", randomDirectoryName);
         Directory.CreateDirectory(_temporaryDirectoryPath);
 
-        _temporaryStorageFilePath = Path.Combine(_temporaryDirectoryPath, "dev-issues-db.json");
+        _temporaryStorageFilePath = Path.Combine(_temporaryDirectoryPath, "issue-service-db.json");
     }
 
     [TearDown]

@@ -35,4 +35,16 @@ internal static class TestKit
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IssueDetailsResponse>() ?? throw new InvalidOperationException("Unexpected content.");
     }
+
+    public static async Task<CreateVersionResponse> CreateVersion(HttpClient client, string name)
+    {
+        var createVersionRequest = new CreateVersionRequest
+        {
+            Name = name
+        };
+        using var content = CreateJsonContent(createVersionRequest);
+        using var response = await client.PostAsync("api/versions", content);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CreateVersionResponse>() ?? throw new InvalidOperationException("Unexpected content.");
+    }
 }

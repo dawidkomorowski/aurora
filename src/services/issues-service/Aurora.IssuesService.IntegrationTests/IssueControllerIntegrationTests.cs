@@ -322,4 +322,24 @@ public class IssueControllerIntegrationTests
         Assert.That(issue.Version.Id, Is.EqualTo(createVersionResponse.Id));
         Assert.That(issue.Version.Name, Is.EqualTo("Test version"));
     }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_NotFound_GivenIssueIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Status = "Open"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync("api/issues/123", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
 }

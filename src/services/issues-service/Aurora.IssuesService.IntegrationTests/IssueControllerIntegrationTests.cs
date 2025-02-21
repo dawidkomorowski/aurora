@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Aurora.IssuesService.Host.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 namespace Aurora.IssuesService.IntegrationTests;
 
@@ -39,7 +38,7 @@ public class IssueControllerIntegrationTests
     public async Task CreateIssue_ShouldReturn_BadRequest_GivenVersionIdThatDoesNotExist()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         var createIssueRequest = new CreateIssueRequest
         {
@@ -66,7 +65,7 @@ public class IssueControllerIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         var createIssueRequest = new CreateIssueRequest
         {
@@ -109,7 +108,7 @@ public class IssueControllerIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         const string versionName = "Test version";
         var createVersionResponse = await TestKit.CreateVersion(client, versionName);
@@ -158,7 +157,7 @@ public class IssueControllerIntegrationTests
     {
         // Arrange
         var startTime = DateTime.UtcNow;
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         var createIssueRequest1 = new CreateIssueRequest
         {
@@ -224,7 +223,7 @@ public class IssueControllerIntegrationTests
     public async Task GetAllIssues_ShouldReturn_OK_AndNoIssues_WhenDatabaseIsEmpty()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         // Act
         using var response = await client.GetAsync("api/issues");
@@ -244,7 +243,7 @@ public class IssueControllerIntegrationTests
     public async Task GetAllIssues_ShouldReturn_OK_AndAllIssues()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         var createVersionResponse = await TestKit.CreateVersion(client, "Test version 1");
 
@@ -282,5 +281,45 @@ public class IssueControllerIntegrationTests
         Assert.That(issue3.Title, Is.EqualTo("Test issue 3"));
         Assert.That(issue3.Status, Is.EqualTo("Open"));
         Assert.That(issue3.Version, Is.Null);
+    }
+
+    [Test]
+    public async Task GetIssue_ShouldReturn_NotFound_GivenIssueIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("api/issues/123");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetIssue_ShouldReturn_OK_AndIssueDetails()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test version");
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", createVersionResponse.Id);
+
+        // Act
+        using var response = await client.GetAsync($"api/issues/{createIssueResponse.Id}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var issue = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(issue, Is.Not.Null);
+        Assert.That(issue.Id, Is.EqualTo(createIssueResponse.Id));
+        Assert.That(issue.Title, Is.EqualTo("Test issue"));
+        Assert.That(issue.Description, Is.EqualTo("Test issue description"));
+        Assert.That(issue.Status, Is.EqualTo("Open"));
+        Assert.That(issue.Version, Is.Not.Null);
+        Assert.That(issue.Version.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(issue.Version.Name, Is.EqualTo("Test version"));
     }
 }

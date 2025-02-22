@@ -342,4 +342,195 @@ public class IssueControllerIntegrationTests
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
     }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_BadRequest_GivenVersionIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Status = "Open",
+            VersionId = 123
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["VersionId"][0], Is.EqualTo("Specified version is invalid."));
+    }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_OK_AndUpdateIssue()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+        var createdIssue = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Description = "Updated test issue description",
+            Status = "Closed"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createIssueResponse.Id));
+        Assert.That(updateResponse.Title, Is.EqualTo(updateIssueRequest.Title));
+        Assert.That(updateResponse.Description, Is.EqualTo(updateIssueRequest.Description));
+        Assert.That(updateResponse.Status, Is.EqualTo(updateIssueRequest.Status));
+        Assert.That(updateResponse.Version, Is.Null);
+        Assert.That(updateResponse.CreatedDateTime, Is.EqualTo(createdIssue.CreatedDateTime));
+        Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+    }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_OK_AndSetVersionOnIssue_GivenIssueWithNoVersion()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test version");
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+        var createdIssue = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Description = "Updated test issue description",
+            Status = "Closed",
+            VersionId = createVersionResponse.Id
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createIssueResponse.Id));
+        Assert.That(updateResponse.Title, Is.EqualTo(updateIssueRequest.Title));
+        Assert.That(updateResponse.Description, Is.EqualTo(updateIssueRequest.Description));
+        Assert.That(updateResponse.Status, Is.EqualTo(updateIssueRequest.Status));
+        Assert.That(updateResponse.Version, Is.Not.Null);
+        Assert.That(updateResponse.Version.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(updateResponse.Version.Name, Is.EqualTo("Test version"));
+        Assert.That(updateResponse.CreatedDateTime, Is.EqualTo(createdIssue.CreatedDateTime));
+        Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+    }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_OK_AndChangeVersionOnIssue_GivenIssueWithVersion()
+    {
+        // Arrange
+
+        using var client = _factory.CreateClient();
+        var createVersionResponse1 = await TestKit.CreateVersion(client, "Test version 1");
+        var createVersionResponse2 = await TestKit.CreateVersion(client, "Test version 2");
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", createVersionResponse1.Id);
+        var createdIssue = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Description = "Updated test issue description",
+            Status = "Closed",
+            VersionId = createVersionResponse2.Id
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createIssueResponse.Id));
+        Assert.That(updateResponse.Title, Is.EqualTo(updateIssueRequest.Title));
+        Assert.That(updateResponse.Description, Is.EqualTo(updateIssueRequest.Description));
+        Assert.That(updateResponse.Status, Is.EqualTo(updateIssueRequest.Status));
+        Assert.That(updateResponse.Version, Is.Not.Null);
+        Assert.That(updateResponse.Version.Id, Is.EqualTo(createVersionResponse2.Id));
+        Assert.That(updateResponse.Version.Name, Is.EqualTo("Test version 2"));
+        Assert.That(updateResponse.CreatedDateTime, Is.EqualTo(createdIssue.CreatedDateTime));
+        Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+    }
+
+    [Test]
+    public async Task UpdateIssue_ShouldReturn_OK_AndRemoveVersionFromIssue_GivenIssueWithVersion()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test version");
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", createVersionResponse.Id);
+        var createdIssue = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Description = "Updated test issue description",
+            Status = "Closed",
+            VersionId = null
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createIssueResponse.Id));
+        Assert.That(updateResponse.Title, Is.EqualTo(updateIssueRequest.Title));
+        Assert.That(updateResponse.Description, Is.EqualTo(updateIssueRequest.Description));
+        Assert.That(updateResponse.Status, Is.EqualTo(updateIssueRequest.Status));
+        Assert.That(updateResponse.Version, Is.Null);
+        Assert.That(updateResponse.CreatedDateTime, Is.EqualTo(createdIssue.CreatedDateTime));
+        Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+    }
 }

@@ -22,6 +22,18 @@ internal static class TestKit
         Assert.That(content.Headers.ContentType?.CharSet, Is.EqualTo("utf-8"));
     }
 
+    public static void AssertThatIssueDetailResponsesAreEqual(IssueDetailsResponse actual, IssueDetailsResponse expected)
+    {
+        Assert.That(actual.Id, Is.EqualTo(expected.Id));
+        Assert.That(actual.Title, Is.EqualTo(expected.Title));
+        Assert.That(actual.Description, Is.EqualTo(expected.Description));
+        Assert.That(actual.Status, Is.EqualTo(expected.Status));
+        Assert.That(actual.Version?.Id, Is.EqualTo(expected.Version?.Id));
+        Assert.That(actual.Version?.Name, Is.EqualTo(expected.Version?.Name));
+        Assert.That(actual.CreatedDateTime, Is.EqualTo(expected.CreatedDateTime));
+        Assert.That(actual.UpdatedDateTime, Is.EqualTo(expected.UpdatedDateTime));
+    }
+
     public static async Task<CreateIssueResponse> CreateIssue(HttpClient client, string title, string description, int? versionId)
     {
         var createIssueRequest = new CreateIssueRequest

@@ -6,19 +6,19 @@ using Microsoft.Extensions.Hosting;
 
 namespace Aurora.IssuesService.IntegrationTests;
 
-internal sealed class IntegrationTestsWebApplicationFactory : WebApplicationFactory<Program>
+internal sealed class TestIssueServiceFactory : WebApplicationFactory<Program>
 {
-    private readonly string _issuesDatabasePath;
+    private readonly string _databasePath;
 
-    public IntegrationTestsWebApplicationFactory(string issuesDatabasePath)
+    public TestIssueServiceFactory(string databasePath)
     {
-        _issuesDatabasePath = issuesDatabasePath;
+        _databasePath = databasePath;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(Environments.Production);
 
-        Environment.SetEnvironmentVariable("AURORA_ISSUES_DB_PATH", _issuesDatabasePath);
+        Environment.SetEnvironmentVariable("AURORA_ISSUES_DB_PATH", _databasePath);
     }
 }

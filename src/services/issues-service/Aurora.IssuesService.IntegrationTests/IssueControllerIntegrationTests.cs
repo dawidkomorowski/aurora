@@ -12,7 +12,7 @@ namespace Aurora.IssuesService.IntegrationTests;
 public class IssueControllerIntegrationTests
 {
     private string _temporaryDirectoryPath = null!;
-    private IntegrationTestsWebApplicationFactory _factory = null!;
+    private TestIssueServiceFactory _factory = null!;
 
     [SetUp]
     public void SetUp()
@@ -21,9 +21,9 @@ public class IssueControllerIntegrationTests
         _temporaryDirectoryPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "TempDir", randomDirectoryName);
         Directory.CreateDirectory(_temporaryDirectoryPath);
 
-        var temporaryStorageFilePath = Path.Combine(_temporaryDirectoryPath, "issue-service-db.json");
+        var databasePath = Path.Combine(_temporaryDirectoryPath, "issue-service-db.json");
 
-        _factory = new IntegrationTestsWebApplicationFactory(temporaryStorageFilePath);
+        _factory = new TestIssueServiceFactory(databasePath);
     }
 
     [TearDown]

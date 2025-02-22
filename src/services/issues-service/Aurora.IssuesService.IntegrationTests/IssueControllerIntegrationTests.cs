@@ -238,18 +238,22 @@ public class IssueControllerIntegrationTests
     }
 
     // TODO Add tests for filtering issues by status and version once update tests are implemented.
-    // TODO This test should include different statuses and versions for baseline - no filtering.
     [Test]
     public async Task GetAllIssues_ShouldReturn_OK_AndAllIssues()
     {
         // Arrange
         using var client = _factory.CreateClient();
 
-        var createVersionResponse = await TestKit.CreateVersion(client, "Test version 1");
+        var createVersionResponse1 = await TestKit.CreateVersion(client, "Test version 1");
+        var createVersionResponse2 = await TestKit.CreateVersion(client, "Test version 2");
 
         await TestKit.CreateIssue(client, "Test issue 1", "Test issue description 1", null);
-        await TestKit.CreateIssue(client, "Test issue 2", "Test issue description 2", createVersionResponse.Id);
+        await TestKit.CreateIssue(client, "Test issue 2", "Test issue description 2", createVersionResponse1.Id);
         await TestKit.CreateIssue(client, "Test issue 3", "Test issue description 3", null);
+        await TestKit.CreateIssue(client, "Test issue 4", "Test issue description 4", createVersionResponse2.Id);
+
+        await TestKit.UpdateIssueStatus(client, 3, "In Progress");
+        await TestKit.UpdateIssueStatus(client, 4, "Closed");
 
         // Act
         using var response = await client.GetAsync("api/issues");
@@ -260,7 +264,7 @@ public class IssueControllerIntegrationTests
 
         var issues = await response.Content.ReadFromJsonAsync<IssueOverviewResponse[]>();
         Assert.That(issues, Is.Not.Null);
-        Assert.That(issues, Has.Length.EqualTo(3));
+        Assert.That(issues, Has.Length.EqualTo(4));
 
         var issue1 = issues[0];
         Assert.That(issue1.Id, Is.EqualTo(1));
@@ -273,14 +277,22 @@ public class IssueControllerIntegrationTests
         Assert.That(issue2.Title, Is.EqualTo("Test issue 2"));
         Assert.That(issue2.Status, Is.EqualTo("Open"));
         Assert.That(issue2.Version, Is.Not.Null);
-        Assert.That(issue2.Version.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(issue2.Version.Id, Is.EqualTo(createVersionResponse1.Id));
         Assert.That(issue2.Version.Name, Is.EqualTo("Test version 1"));
 
         var issue3 = issues[2];
         Assert.That(issue3.Id, Is.EqualTo(3));
         Assert.That(issue3.Title, Is.EqualTo("Test issue 3"));
-        Assert.That(issue3.Status, Is.EqualTo("Open"));
+        Assert.That(issue3.Status, Is.EqualTo("In Progress"));
         Assert.That(issue3.Version, Is.Null);
+
+        var issue4 = issues[3];
+        Assert.That(issue4.Id, Is.EqualTo(4));
+        Assert.That(issue4.Title, Is.EqualTo("Test issue 4"));
+        Assert.That(issue4.Status, Is.EqualTo("Closed"));
+        Assert.That(issue4.Version, Is.Not.Null);
+        Assert.That(issue4.Version.Id, Is.EqualTo(createVersionResponse2.Id));
+        Assert.That(issue4.Version.Name, Is.EqualTo("Test version 2"));
     }
 
     [Test]

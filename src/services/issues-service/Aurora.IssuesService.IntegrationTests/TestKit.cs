@@ -44,21 +44,38 @@ internal static class TestKit
         };
         using var content = CreateJsonContent(createIssueRequest);
         using var response = await client.PostAsync("api/issues", content);
-        response.EnsureSuccessStatusCode();
+        await VerboseEnsureSuccessStatusCode(response);
         return await response.Content.ReadFromJsonAsync<CreateIssueResponse>() ?? throw UnexpectedContent();
     }
 
     public static async Task<IssueOverviewResponse[]> GetAllIssues(HttpClient client)
     {
         using var response = await client.GetAsync("api/issues");
-        response.EnsureSuccessStatusCode();
+        await VerboseEnsureSuccessStatusCode(response);
         return await response.Content.ReadFromJsonAsync<IssueOverviewResponse[]>() ?? throw UnexpectedContent();
     }
 
     public static async Task<IssueDetailsResponse> GetIssue(HttpClient client, int issueId)
     {
         using var response = await client.GetAsync($"api/issues/{issueId}");
-        response.EnsureSuccessStatusCode();
+        await VerboseEnsureSuccessStatusCode(response);
+        return await response.Content.ReadFromJsonAsync<IssueDetailsResponse>() ?? throw UnexpectedContent();
+    }
+
+    public static async Task<IssueDetailsResponse> UpdateIssueStatus(HttpClient client, int issueId, string status)
+    {
+        var issue = await GetIssue(client, issueId);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = issue.Title,
+            Description = issue.Description,
+            Status = status,
+            VersionId = issue.Version?.Id
+        };
+        using var content = CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{issueId}", content);
+        await VerboseEnsureSuccessStatusCode(response);
         return await response.Content.ReadFromJsonAsync<IssueDetailsResponse>() ?? throw UnexpectedContent();
     }
 
@@ -70,8 +87,25 @@ internal static class TestKit
         };
         using var content = CreateJsonContent(createVersionRequest);
         using var response = await client.PostAsync("api/versions", content);
-        response.EnsureSuccessStatusCode();
+        await VerboseEnsureSuccessStatusCode(response);
         return await response.Content.ReadFromJsonAsync<CreateVersionResponse>() ?? throw UnexpectedContent();
+    }
+
+    private static async Task VerboseEnsureSuccessStatusCode(HttpResponseMessage response)
+    {
+        try
+        {
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception)
+        {
+            TestContext.WriteLine();
+            TestContext.WriteLine($"FAILED - {nameof(VerboseEnsureSuccessStatusCode)}");
+            TestContext.WriteLine($"Response: {response}");
+            TestContext.WriteLine();
+            TestContext.WriteLine($"Content: {await response.Content.ReadAsStringAsync()}");
+            throw;
+        }
     }
 
     private static InvalidOperationException UnexpectedContent() => new("Unexpected content.");

@@ -22,6 +22,12 @@ internal static class TestKit
         Assert.That(content.Headers.ContentType?.CharSet, Is.EqualTo("utf-8"));
     }
 
+    public static void AssertThatContentIsProblemJson(HttpContent content)
+    {
+        Assert.That(content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
+        Assert.That(content.Headers.ContentType?.CharSet, Is.EqualTo("utf-8"));
+    }
+
     public static void AssertThatIssueDetailResponsesAreEqual(IssueDetailsResponse actual, IssueDetailsResponse expected)
     {
         Assert.That(actual.Id, Is.EqualTo(expected.Id));

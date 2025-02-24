@@ -11,7 +11,7 @@ using NUnit.Framework;
 
 namespace Aurora.IssuesService.IntegrationTests;
 
-public class IssueControllerIntegrationTests
+public sealed class IssueControllerIntegrationTests
 {
     private string _temporaryDirectoryPath = null!;
     private TestIssueServiceFactory _factory = null!;
@@ -31,9 +31,9 @@ public class IssueControllerIntegrationTests
     [TearDown]
     public void TearDown()
     {
-        Directory.Delete(_temporaryDirectoryPath, true);
-
         _factory.Dispose();
+
+        Directory.Delete(_temporaryDirectoryPath, true);
     }
 
     [Test]

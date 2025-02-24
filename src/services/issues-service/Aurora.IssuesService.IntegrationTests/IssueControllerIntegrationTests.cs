@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Aurora.IssuesService.IntegrationTests;
 
+// TODO Add trimming of issue title for update endpoint.
+// TODO Add tests for required fields in update endpoint.
 public sealed class IssueControllerIntegrationTests
 {
     private string _temporaryDirectoryPath = null!;

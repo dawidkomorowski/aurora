@@ -36,6 +36,32 @@ public sealed class IssueControllerIntegrationTests
         Directory.Delete(_temporaryDirectoryPath, true);
     }
 
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task CreateIssue_ShouldReturn_BadRequest_GivenInvalidIssueTitle(string? issueTitle)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueRequest = new CreateIssueRequest
+        {
+            Title = issueTitle!
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(createIssueRequest);
+        using var response = await client.PostAsync("api/issues", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsProblemJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Title"][0], Is.EqualTo("The Title field is required."));
+    }
+
     [Test]
     public async Task CreateIssue_ShouldReturn_BadRequest_GivenVersionIdThatDoesNotExist()
     {

@@ -247,6 +247,43 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(issue2.CreatedDateTime, Is.EqualTo(issue2.UpdatedDateTime));
     }
 
+    [TestCase("Test issue title", "Test issue title")]
+    [TestCase("   Test issue title", "Test issue title")]
+    [TestCase("Test issue title   ", "Test issue title")]
+    [TestCase("   Test issue title   ", "Test issue title")]
+    public async Task CreateIssue_ShouldReturn_Created_AndCreateNewIssue_WithTrimmedIssueTitle(string title, string expectedTitle)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueRequest = new CreateIssueRequest
+        {
+            Title = title
+        };
+
+        // Assume
+        var issuesBefore = await TestKit.GetAllIssues(client);
+        Assert.That(issuesBefore, Is.Empty);
+
+        // Act
+        using var content = TestKit.CreateJsonContent(createIssueRequest);
+        using var response = await client.PostAsync("api/issues", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var createIssueResponse = await response.Content.ReadFromJsonAsync<CreateIssueResponse>();
+        Assert.That(createIssueResponse, Is.Not.Null);
+        Assert.That(createIssueResponse.Id, Is.EqualTo(1));
+
+        var issuesAfter = await TestKit.GetAllIssues(client);
+        Assert.That(issuesAfter, Has.Length.EqualTo(1));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issue.Title, Is.EqualTo(expectedTitle));
+    }
+
     [Test]
     public async Task GetAllIssues_ShouldReturn_OK_AndNoIssues_WhenDatabaseIsEmpty()
     {

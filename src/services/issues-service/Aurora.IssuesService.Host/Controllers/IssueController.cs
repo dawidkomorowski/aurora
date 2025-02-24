@@ -129,7 +129,7 @@ public sealed class IssueController : ControllerBase
         {
             var issueCreateDto = new IssueCreateDto
             {
-                Title = createIssueRequest.Title,
+                Title = createIssueRequest.Title.Trim(),
                 Description = createIssueRequest.Description,
                 Status = "Open",
                 VersionId = createIssueRequest.VersionId

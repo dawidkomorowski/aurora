@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Aurora.IssuesService.Host.Controllers;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using NUnit.Framework;
 
@@ -237,7 +239,6 @@ public class IssueControllerIntegrationTests
         Assert.That(issues, Is.Empty);
     }
 
-    // TODO Add tests for filtering issues by status and version once update tests are implemented.
     [Test]
     public async Task GetAllIssues_ShouldReturn_OK_AndAllIssues()
     {
@@ -293,6 +294,56 @@ public class IssueControllerIntegrationTests
         Assert.That(issue4.Version, Is.Not.Null);
         Assert.That(issue4.Version.Id, Is.EqualTo(createVersionResponse2.Id));
         Assert.That(issue4.Version.Name, Is.EqualTo("Test version 2"));
+    }
+
+    [TestCase(null, null, 5, new[] { 1, 2, 3, 4, 5 })]
+    [TestCase("Open", null, 3, new[] { 1, 2, 5 })]
+    [TestCase(null, 2, 2, new[] { 4, 5 })]
+    [TestCase(null, GetAllFilters.NoVersionId, 2, new[] { 1, 3 })]
+    [TestCase("Open", 2, 1, new[] { 5 })]
+    [TestCase("Open", GetAllFilters.NoVersionId, 1, new[] { 1 })]
+    public async Task GetAllIssues_ShouldReturn_OK_AndIssuesMatchingTheFilters_WhenFilteringIsApplied(
+        string? statusFilter, int? versionIdFilter, int matchingCount, int[] matchingIds)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse1 = await TestKit.CreateVersion(client, "Test version 1");
+        var createVersionResponse2 = await TestKit.CreateVersion(client, "Test version 2");
+
+        await TestKit.CreateIssue(client, "Test issue 1", "Test issue description 1", null);
+        await TestKit.CreateIssue(client, "Test issue 2", "Test issue description 2", createVersionResponse1.Id);
+        await TestKit.CreateIssue(client, "Test issue 3", "Test issue description 3", null);
+        await TestKit.CreateIssue(client, "Test issue 4", "Test issue description 4", createVersionResponse2.Id);
+        await TestKit.CreateIssue(client, "Test issue 4", "Test issue description 5", createVersionResponse2.Id);
+
+        await TestKit.UpdateIssueStatus(client, 3, "In Progress");
+        await TestKit.UpdateIssueStatus(client, 4, "Closed");
+
+        var queryBuilder = new QueryBuilder();
+
+        if (statusFilter is not null)
+        {
+            queryBuilder.Add("status", statusFilter);
+        }
+
+        if (versionIdFilter is not null)
+        {
+            queryBuilder.Add("versionId", versionIdFilter.ToString() ?? throw new InvalidOperationException());
+        }
+
+        // Act
+        using var response = await client.GetAsync($"api/issues{queryBuilder}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var issues = await response.Content.ReadFromJsonAsync<IssueOverviewResponse[]>();
+        Assert.That(issues, Is.Not.Null);
+        Assert.That(issues, Has.Length.EqualTo(matchingCount));
+
+        Assert.That(issues.Select(i => i.Id), Is.EquivalentTo(matchingIds));
     }
 
     [Test]

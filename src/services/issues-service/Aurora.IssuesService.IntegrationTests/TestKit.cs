@@ -97,6 +97,20 @@ internal static class TestKit
         return await response.Content.ReadFromJsonAsync<CreateVersionResponse>() ?? throw UnexpectedContent();
     }
 
+    public static async Task<VersionDetailsResponse[]> GetAllVersions(HttpClient client)
+    {
+        using var response = await client.GetAsync("api/versions");
+        await VerboseEnsureSuccessStatusCode(response);
+        return await response.Content.ReadFromJsonAsync<VersionDetailsResponse[]>() ?? throw UnexpectedContent();
+    }
+
+    public static async Task<VersionDetailsResponse> GetVersion(HttpClient client, int versionId)
+    {
+        using var response = await client.GetAsync($"api/versions/{versionId}");
+        await VerboseEnsureSuccessStatusCode(response);
+        return await response.Content.ReadFromJsonAsync<VersionDetailsResponse>() ?? throw UnexpectedContent();
+    }
+
     private static async Task VerboseEnsureSuccessStatusCode(HttpResponseMessage response)
     {
         try

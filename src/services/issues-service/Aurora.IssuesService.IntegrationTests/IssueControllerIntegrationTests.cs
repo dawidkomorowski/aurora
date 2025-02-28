@@ -228,6 +228,7 @@ public sealed class IssueControllerIntegrationTests
 
         var issue1 = await TestKit.GetIssue(client, createIssueResponse1.Id);
         var issue2 = await TestKit.GetIssue(client, createIssueResponse2.Id);
+
         Assert.That(issue1.Id, Is.EqualTo(1));
         Assert.That(issue1.Title, Is.EqualTo(createIssueRequest1.Title));
         Assert.That(issue1.Description, Is.EqualTo(createIssueRequest1.Description));

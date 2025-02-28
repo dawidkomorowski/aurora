@@ -154,7 +154,7 @@ public sealed class IssueController : ControllerBase
         {
             var issueUpdateDto = new IssueUpdateDto
             {
-                Title = updateIssueRequest.Title,
+                Title = updateIssueRequest.Title.Trim(),
                 Description = updateIssueRequest.Description,
                 Status = updateIssueRequest.Status,
                 VersionId = updateIssueRequest.VersionId

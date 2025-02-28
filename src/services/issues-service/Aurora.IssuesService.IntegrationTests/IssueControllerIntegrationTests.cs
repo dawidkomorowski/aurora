@@ -11,7 +11,6 @@ using NUnit.Framework;
 
 namespace Aurora.IssuesService.IntegrationTests;
 
-// TODO Add trimming of issue title for update endpoint.
 public sealed class IssueControllerIntegrationTests
 {
     private string _temporaryDirectoryPath = null!;
@@ -714,6 +713,40 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.Version, Is.Null);
         Assert.That(updateResponse.CreatedDateTime, Is.EqualTo(createdIssue.CreatedDateTime));
         Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
+
+        var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
+        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+    }
+
+    [TestCase("Test issue title", "Test issue title")]
+    [TestCase("   Test issue title", "Test issue title")]
+    [TestCase("Test issue title   ", "Test issue title")]
+    [TestCase("   Test issue title   ", "Test issue title")]
+    public async Task UpdateIssue_ShouldReturn_OK_AndUpdateIssue_WithTrimmedIssueTitle(string title, string expectedTitle)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = title,
+            Description = "Updated test issue description",
+            Status = "Closed"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<IssueDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Title, Is.EqualTo(expectedTitle));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
         TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);

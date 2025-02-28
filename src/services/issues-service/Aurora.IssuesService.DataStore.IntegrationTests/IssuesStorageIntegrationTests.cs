@@ -69,24 +69,6 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void CreateVersion_ShouldThrowException_WhenVersionWithTheSameNameAlreadyExists()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var versionCreateDto = new VersionCreateDto
-        {
-            Name = "Version 1"
-        };
-
-        issuesStorage.CreateVersion(versionCreateDto);
-
-        // Act
-        // Assert
-        Assert.That(() => issuesStorage.CreateVersion(versionCreateDto), Throws.TypeOf<VersionAlreadyExistsException>());
-    }
-
-    [Test]
     public void CreateVersion_ShouldCreateMultipleVersions_WhenCalledMultipleTimes()
     {
         // Arrange

@@ -58,4 +58,33 @@ public sealed class VersionControllerIntegrationTests
         Assert.That(validationProblemDetails, Is.Not.Null);
         Assert.That(validationProblemDetails.Errors["Name"][0], Is.EqualTo("The Name field is required."));
     }
+
+    [TestCase("Test Version")]
+    [TestCase("   Test Version")]
+    [TestCase("Test Version   ")]
+    [TestCase("   Test Version   ")]
+    public async Task CreateVersion_ShouldReturn_BadRequest_GivenVersionNameThatAlreadyExists(string versionName)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        await TestKit.CreateVersion(client, "Test Version");
+
+        var createVersionRequest = new CreateVersionRequest
+        {
+            Name = versionName
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(createVersionRequest);
+        using var response = await client.PostAsync("api/versions", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Name"][0], Is.EqualTo("Version with the same name already exists."));
+    }
 }

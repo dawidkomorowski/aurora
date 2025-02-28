@@ -12,7 +12,6 @@ using NUnit.Framework;
 namespace Aurora.IssuesService.IntegrationTests;
 
 // TODO Add trimming of issue title for update endpoint.
-// TODO Add tests for required fields in update endpoint.
 public sealed class IssueControllerIntegrationTests
 {
     private string _temporaryDirectoryPath = null!;
@@ -469,6 +468,64 @@ public sealed class IssueControllerIntegrationTests
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task UpdateIssue_ShouldReturn_BadRequest_GivenInvalidIssueTitle(string? issueTitle)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = issueTitle!,
+            Status = "Open"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsProblemJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Title"][0], Is.EqualTo("The Title field is required."));
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task UpdateIssue_ShouldReturn_BadRequest_GivenInvalidIssueStatus(string? issueStatus)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test issue", "Test issue description", null);
+
+        var updateIssueRequest = new UpdateIssueRequest
+        {
+            Title = "Updated test issue",
+            Status = issueStatus!
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateIssueRequest);
+        using var response = await client.PutAsync($"api/issues/{createIssueResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsProblemJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Status"][0], Is.EqualTo("The Status field is required."));
     }
 
     [Test]

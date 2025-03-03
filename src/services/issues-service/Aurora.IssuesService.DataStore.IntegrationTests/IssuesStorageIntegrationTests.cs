@@ -41,61 +41,6 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void GetAllVersions_ShouldReturnNoVersions_WhenStorageFileDoesNotExist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        // Act
-        var versions = issuesStorage.GetAllVersions();
-
-        // Assert
-        Assert.That(versions, Is.Empty);
-    }
-
-    [Test]
-    public void GetAllVersions_ShouldReturnExistingVersions_WhenStorageFileAlreadyExists()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var versionCreateDto1 = new VersionCreateDto
-        {
-            Name = "Version 1"
-        };
-
-        var versionCreateDto2 = new VersionCreateDto
-        {
-            Name = "Version 2"
-        };
-
-        var versionCreateDto3 = new VersionCreateDto
-        {
-            Name = "Version 3"
-        };
-
-        var createdVersion1 = issuesStorage.CreateVersion(versionCreateDto1);
-        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
-        var createdVersion3 = issuesStorage.CreateVersion(versionCreateDto3);
-
-        // Act
-        var issuesStorage2 = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-        var allVersions = issuesStorage2.GetAllVersions();
-
-        // Assert
-        Assert.That(allVersions, Has.Count.EqualTo(3));
-
-        var version1 = allVersions.Single(v => v.Id == 1);
-        Assert.That(version1, Is.EqualTo(createdVersion1));
-
-        var version2 = allVersions.Single(v => v.Id == 2);
-        Assert.That(version2, Is.EqualTo(createdVersion2));
-
-        var version3 = allVersions.Single(v => v.Id == 3);
-        Assert.That(version3, Is.EqualTo(createdVersion3));
-    }
-
-    [Test]
     public void GetVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
     {
         // Arrange

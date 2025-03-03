@@ -212,4 +212,51 @@ public sealed class VersionControllerIntegrationTests
         var version = await TestKit.GetVersion(client, createVersionResponse.Id);
         Assert.That(version.Name, Is.EqualTo(expectedName));
     }
+
+    [Test]
+    public async Task GetAllVersions_ShouldReturn_OK_AndNoVersions_WhenDatabaseIsEmpty()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("api/versions");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var versions = await response.Content.ReadFromJsonAsync<VersionDetailsResponse[]>();
+        Assert.That(versions, Is.Not.Null);
+        Assert.That(versions, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetAllVersions_ShouldReturn_OK_AndAllVersions()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse1 = await TestKit.CreateVersion(client, "Test Version 1");
+        var createVersionResponse2 = await TestKit.CreateVersion(client, "Test Version 2");
+
+        // Act
+        using var response = await client.GetAsync("api/versions");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var versions = await response.Content.ReadFromJsonAsync<VersionDetailsResponse[]>();
+        Assert.That(versions, Is.Not.Null);
+        Assert.That(versions, Has.Length.EqualTo(2));
+
+        var version1 = versions[0];
+        Assert.That(version1.Id, Is.EqualTo(createVersionResponse1.Id));
+        Assert.That(version1.Name, Is.EqualTo("Test Version 1"));
+
+        var version2 = versions[1];
+        Assert.That(version2.Id, Is.EqualTo(createVersionResponse2.Id));
+        Assert.That(version2.Name, Is.EqualTo("Test Version 2"));
+    }
 }

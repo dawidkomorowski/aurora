@@ -591,7 +591,7 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
-        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+        TestKit.AssertThatIssueDetailsResponsesAreEqual(issue, updateResponse);
     }
 
     [Test]
@@ -633,7 +633,7 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
-        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+        TestKit.AssertThatIssueDetailsResponsesAreEqual(issue, updateResponse);
     }
 
     [Test]
@@ -676,7 +676,7 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
-        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+        TestKit.AssertThatIssueDetailsResponsesAreEqual(issue, updateResponse);
     }
 
     [Test]
@@ -716,7 +716,7 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.UpdatedDateTime, Is.GreaterThan(createdIssue.UpdatedDateTime));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
-        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+        TestKit.AssertThatIssueDetailsResponsesAreEqual(issue, updateResponse);
     }
 
     [TestCase("Test issue title", "Test issue title")]
@@ -750,6 +750,6 @@ public sealed class IssueControllerIntegrationTests
         Assert.That(updateResponse.Title, Is.EqualTo(expectedTitle));
 
         var issue = await TestKit.GetIssue(client, createIssueResponse.Id);
-        TestKit.AssertThatIssueDetailResponsesAreEqual(issue, updateResponse);
+        TestKit.AssertThatIssueDetailsResponsesAreEqual(issue, updateResponse);
     }
 }

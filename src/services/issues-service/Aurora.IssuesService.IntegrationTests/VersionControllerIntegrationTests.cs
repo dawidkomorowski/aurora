@@ -293,4 +293,181 @@ public sealed class VersionControllerIntegrationTests
         Assert.That(version.Id, Is.EqualTo(createVersionResponse.Id));
         Assert.That(version.Name, Is.EqualTo("Test Version"));
     }
+
+    [Test]
+    public async Task UpdateVersion_ShouldReturn_NotFound_GivenVersionIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = "Test Version"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateVersionRequest);
+        using var response = await client.PutAsync("api/versions/123", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task UpdateVersion_ShouldReturn_BadRequest_GivenInvalidVersionName(string? versionName)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test Version");
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = versionName!
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateVersionRequest);
+        using var response = await client.PutAsync($"api/versions/{createVersionResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsProblemJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Name"][0], Is.EqualTo("The Name field is required."));
+    }
+
+    [TestCase("Existing Version")]
+    [TestCase("   Existing Version")]
+    [TestCase("Existing Version   ")]
+    [TestCase("   Existing Version   ")]
+    public async Task UpdateVersion_ShouldReturn_BadRequest_GivenVersionNameThatAlreadyExists(string versionName)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        await TestKit.CreateVersion(client, "Existing Version");
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test Version");
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = versionName
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateVersionRequest);
+        using var response = await client.PutAsync($"api/versions/{createVersionResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Name"][0], Is.EqualTo("Version with the same name already exists."));
+    }
+
+    [Test]
+    public async Task UpdateVersion_ShouldReturn_OK_AndUpdateVersion()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test Version");
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = "Updated Version"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateVersionRequest);
+        using var response = await client.PutAsync($"api/versions/{createVersionResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<VersionDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(updateResponse.Name, Is.EqualTo("Updated Version"));
+
+        var version = await TestKit.GetVersion(client, createVersionResponse.Id);
+        TestKit.AssertThatVersionDetailsResponsesAreEqual(version, updateResponse);
+    }
+
+    [TestCase("Updated Version", "Updated Version")]
+    [TestCase("   Updated Version", "Updated Version")]
+    [TestCase("Updated Version   ", "Updated Version")]
+    [TestCase("   Updated Version   ", "Updated Version")]
+    public async Task UpdateVersion_ShouldReturn_OK_AndUpdateVersion_WithTrimmedVersionName(string name, string expectedName)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test Version");
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = name
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateVersionRequest);
+        using var response = await client.PutAsync($"api/versions/{createVersionResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<VersionDetailsResponse>();
+        Assert.That(updateResponse, Is.Not.Null);
+        Assert.That(updateResponse.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(updateResponse.Name, Is.EqualTo(expectedName));
+
+        var version = await TestKit.GetVersion(client, createVersionResponse.Id);
+        TestKit.AssertThatVersionDetailsResponsesAreEqual(version, updateResponse);
+    }
+
+    [Test]
+    public async Task VersionNameAssignedToIssueIsUpdated_WhenVersionIsUpdated()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Initial Version");
+        var createIssueResponse = await TestKit.CreateIssue(client, "Test Issue", "Test Description", createVersionResponse.Id);
+
+        var updateVersionRequest = new UpdateVersionRequest
+        {
+            Name = "Updated Version"
+        };
+
+        // Assume
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueBefore.Version?.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(issueBefore.Version?.Name, Is.EqualTo("Initial Version"));
+
+        // Act
+        using var versionContent = TestKit.CreateJsonContent(updateVersionRequest);
+        using var versionResponse = await client.PutAsync($"api/versions/{createVersionResponse.Id}", versionContent);
+
+        // Assert
+        Assert.That(versionResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(versionResponse.Content);
+
+        var updatedVersion = await versionResponse.Content.ReadFromJsonAsync<VersionDetailsResponse>();
+        Assert.That(updatedVersion, Is.Not.Null);
+        Assert.That(updatedVersion.Name, Is.EqualTo("Updated Version"));
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.Version?.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(issueAfter.Version?.Name, Is.EqualTo("Updated Version"));
+    }
 }

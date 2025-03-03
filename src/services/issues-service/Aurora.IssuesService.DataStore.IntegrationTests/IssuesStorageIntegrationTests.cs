@@ -41,68 +41,6 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void GetVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var versionCreateDto1 = new VersionCreateDto
-        {
-            Name = "Version 1"
-        };
-
-        var versionCreateDto2 = new VersionCreateDto
-        {
-            Name = "Version 2"
-        };
-
-        var versionCreateDto3 = new VersionCreateDto
-        {
-            Name = "Version 3"
-        };
-
-        _ = issuesStorage.CreateVersion(versionCreateDto1);
-        _ = issuesStorage.CreateVersion(versionCreateDto2);
-        _ = issuesStorage.CreateVersion(versionCreateDto3);
-
-        // Act
-        // Assert
-        Assert.That(() => _ = issuesStorage.GetVersion(12), Throws.TypeOf<VersionNotFoundException>());
-    }
-
-    [Test]
-    public void GetVersion_ShouldReturnVersion_GivenVersionId()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var versionCreateDto1 = new VersionCreateDto
-        {
-            Name = "Version 1"
-        };
-
-        var versionCreateDto2 = new VersionCreateDto
-        {
-            Name = "Version 2"
-        };
-
-        var versionCreateDto3 = new VersionCreateDto
-        {
-            Name = "Version 3"
-        };
-
-        _ = issuesStorage.CreateVersion(versionCreateDto1);
-        var createdVersion2 = issuesStorage.CreateVersion(versionCreateDto2);
-        _ = issuesStorage.CreateVersion(versionCreateDto3);
-
-        // Act
-        var version2 = issuesStorage.GetVersion(createdVersion2.Id);
-
-        // Assert
-        Assert.That(version2, Is.EqualTo(createdVersion2));
-    }
-
-    [Test]
     public void UpdateVersion_ShouldThrowException_GivenVersionIdThatDoesNotExistInStorage()
     {
         // Arrange

@@ -259,4 +259,38 @@ public sealed class VersionControllerIntegrationTests
         Assert.That(version2.Id, Is.EqualTo(createVersionResponse2.Id));
         Assert.That(version2.Name, Is.EqualTo("Test Version 2"));
     }
+
+    [Test]
+    public async Task GetVersion_ShouldReturn_NotFound_GivenVersionIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("api/versions/123");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetVersion_ShouldReturn_OK_AndVersionDetails()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createVersionResponse = await TestKit.CreateVersion(client, "Test Version");
+
+        // Act
+        using var response = await client.GetAsync($"api/versions/{createVersionResponse.Id}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var version = await response.Content.ReadFromJsonAsync<VersionDetailsResponse>();
+        Assert.That(version, Is.Not.Null);
+        Assert.That(version.Id, Is.EqualTo(createVersionResponse.Id));
+        Assert.That(version.Name, Is.EqualTo("Test Version"));
+    }
 }

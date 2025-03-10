@@ -185,4 +185,72 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(checklists, Has.Length.EqualTo(1));
         Assert.That(checklists[0].Title, Is.EqualTo(expectedTitle));
     }
+
+    [Test]
+    public async Task GetAllChecklists_ShouldReturn_OK_AndNoChecklists_GivenIssueIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("api/issues/1/checklists");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var checklists = await response.Content.ReadFromJsonAsync<ChecklistResponse[]>();
+        Assert.That(checklists, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetAllChecklists_ShouldReturn_OK_AndNoChecklists_GivenIssueIdThatHasNoChecklists()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+
+        // Act
+        using var response = await client.GetAsync($"api/issues/{createIssueResponse.Id}/checklists");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var checklists = await response.Content.ReadFromJsonAsync<ChecklistResponse[]>();
+        Assert.That(checklists, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetAllChecklists_ShouldReturn_OK_AndAllChecklistsForIssue_GivenIssueIdWithChecklists()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse1 = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createIssueResponse2 = await TestKit.CreateIssue(client, "Issue 2", "Description 2", null);
+
+        await TestKit.CreateChecklist(client, createIssueResponse1.Id, "Checklist 1");
+        await TestKit.CreateChecklist(client, createIssueResponse1.Id, "Checklist 2");
+        await TestKit.CreateChecklist(client, createIssueResponse2.Id, "Checklist 3");
+
+        // Act
+        using var response = await client.GetAsync($"api/issues/{createIssueResponse1.Id}/checklists");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var checklists = await response.Content.ReadFromJsonAsync<ChecklistResponse[]>();
+        Assert.That(checklists, Has.Length.EqualTo(2));
+
+        Assert.That(checklists[0].Id, Is.EqualTo(1));
+        Assert.That(checklists[0].Title, Is.EqualTo("Checklist 1"));
+        Assert.That(checklists[0].Items, Is.Empty);
+
+        Assert.That(checklists[1].Id, Is.EqualTo(2));
+        Assert.That(checklists[1].Title, Is.EqualTo("Checklist 2"));
+        Assert.That(checklists[1].Items, Is.Empty);
+    }
 }

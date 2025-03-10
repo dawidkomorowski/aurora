@@ -79,12 +79,13 @@ public sealed class ChecklistControllerIntegrationTests
     }
 
     [Test]
-    public async Task CreateChecklist_ShouldReturn_Created_AndCreateNewChecklist()
+    public async Task CreateChecklist_ShouldReturn_Created_AndCreateNewChecklist_GivenIssueId()
     {
         // Arrange
         using var client = _factory.CreateClient();
 
         var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
 
         var createChecklistRequest = new CreateChecklistRequest
         {
@@ -107,6 +108,10 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(checklists[0].Id, Is.EqualTo(1));
         Assert.That(checklists[0].Title, Is.EqualTo("Checklist 1"));
         Assert.That(checklists[0].Items, Is.Empty);
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
     }
 
     [Test]
@@ -116,6 +121,7 @@ public sealed class ChecklistControllerIntegrationTests
         using var client = _factory.CreateClient();
 
         var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
 
         var createChecklistRequest1 = new CreateChecklistRequest
         {
@@ -152,6 +158,10 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(checklists[1].Id, Is.EqualTo(2));
         Assert.That(checklists[1].Title, Is.EqualTo("Checklist 2"));
         Assert.That(checklists[1].Items, Is.Empty);
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
     }
 
     [TestCase("Test Checklist", "Test Checklist")]

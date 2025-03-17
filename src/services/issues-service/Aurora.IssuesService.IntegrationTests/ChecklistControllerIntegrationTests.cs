@@ -320,4 +320,132 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(checklist.Title, Is.EqualTo("Checklist 1"));
         Assert.That(checklist.Items, Is.Empty);
     }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task UpdateChecklist_ShouldReturn_BadRequest_GivenInvalidChecklistTitle(string? title)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createChecklistResponse = await TestKit.CreateChecklist(client, createIssueResponse.Id, "Checklist 1");
+
+        var updateChecklistRequest = new UpdateChecklistRequest
+        {
+            Title = title!
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateChecklistRequest);
+        using var response = await client.PutAsync($"api/checklists/{createChecklistResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        TestKit.AssertThatContentIsProblemJson(response.Content);
+
+        var validationProblemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(validationProblemDetails, Is.Not.Null);
+        Assert.That(validationProblemDetails.Errors["Title"][0], Is.EqualTo("The Title field is required."));
+    }
+
+    [Test]
+    public async Task UpdateChecklist_ShouldReturn_NotFound_GivenChecklistIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var updateChecklistRequest = new UpdateChecklistRequest
+        {
+            Title = "Checklist 1"
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateChecklistRequest);
+        using var response = await client.PutAsync("api/checklists/1", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task UpdateChecklist_ShouldReturn_OK_AndUpdateChecklist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createChecklistResponse = await TestKit.CreateChecklist(client, createIssueResponse.Id, "Checklist 1");
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        var updateChecklistRequest = new UpdateChecklistRequest
+        {
+            Title = "Checklist 2"
+        };
+
+        // Assume
+        var checklistBefore = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistBefore.Title, Is.EqualTo("Checklist 1"));
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateChecklistRequest);
+        using var response = await client.PutAsync($"api/checklists/{createChecklistResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updatedChecklist = await response.Content.ReadFromJsonAsync<ChecklistResponse>();
+        Assert.That(updatedChecklist, Is.Not.Null);
+        Assert.That(updatedChecklist.Id, Is.EqualTo(createChecklistResponse.Id));
+        Assert.That(updatedChecklist.Title, Is.EqualTo("Checklist 2"));
+        Assert.That(updatedChecklist.Items, Is.Empty);
+
+        var checklistAfter = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistAfter.Title, Is.EqualTo("Checklist 2"));
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
+    }
+
+    [TestCase("Test Checklist", "Test Checklist")]
+    [TestCase("   Test Checklist", "Test Checklist")]
+    [TestCase("Test Checklist   ", "Test Checklist")]
+    [TestCase("   Test Checklist   ", "Test Checklist")]
+    public async Task UpdateChecklist_ShouldReturn_OK_AndUpdateChecklist_WithTrimmedChecklistTitle(string title, string expectedTitle)
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createChecklistResponse = await TestKit.CreateChecklist(client, createIssueResponse.Id, "Checklist 1");
+
+        var updateChecklistRequest = new UpdateChecklistRequest
+        {
+            Title = title
+        };
+
+        // Assume
+        var checklistBefore = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistBefore.Title, Is.EqualTo("Checklist 1"));
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateChecklistRequest);
+        using var response = await client.PutAsync($"api/checklists/{createChecklistResponse.Id}", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        TestKit.AssertThatContentIsJson(response.Content);
+
+        var updatedChecklist = await response.Content.ReadFromJsonAsync<ChecklistResponse>();
+        Assert.That(updatedChecklist, Is.Not.Null);
+        Assert.That(updatedChecklist.Id, Is.EqualTo(createChecklistResponse.Id));
+        Assert.That(updatedChecklist.Title, Is.EqualTo(expectedTitle));
+        Assert.That(updatedChecklist.Items, Is.Empty);
+
+        var checklistAfter = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistAfter.Title, Is.EqualTo(expectedTitle));
+    }
 }

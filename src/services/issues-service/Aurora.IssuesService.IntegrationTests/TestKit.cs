@@ -136,6 +136,13 @@ internal static class TestKit
         return await response.Content.ReadFromJsonAsync<ChecklistResponse[]>() ?? throw UnexpectedContent();
     }
 
+    public static async Task<ChecklistResponse> GetChecklist(HttpClient client, int checklistId)
+    {
+        using var response = await client.GetAsync($"api/checklists/{checklistId}");
+        await VerboseEnsureSuccessStatusCode(response);
+        return await response.Content.ReadFromJsonAsync<ChecklistResponse>() ?? throw UnexpectedContent();
+    }
+
     private static async Task VerboseEnsureSuccessStatusCode(HttpResponseMessage response)
     {
         try

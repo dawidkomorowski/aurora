@@ -28,6 +28,11 @@ public sealed class CreateChecklistRequest
     public string Title { get; set; } = string.Empty;
 }
 
+public sealed class CreateChecklistResponse
+{
+    public required int Id { get; init; }
+}
+
 public sealed class UpdateChecklistRequest
 {
     [Required(AllowEmptyStrings = false)]
@@ -82,7 +87,8 @@ public sealed class ChecklistController : ControllerBase
     }
 
     [HttpPost("issues/{issueId:int}/checklists")]
-    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created> CreateChecklist(int issueId, CreateChecklistRequest createChecklistRequest)
+    public Results<BadRequest<ValidationProblemDetails>, NotFound, Created<CreateChecklistResponse>> CreateChecklist(int issueId,
+        CreateChecklistRequest createChecklistRequest)
     {
         try
         {
@@ -91,9 +97,11 @@ public sealed class ChecklistController : ControllerBase
                 Title = createChecklistRequest.Title.Trim()
             };
 
-            _issuesStorage.CreateChecklist(issueId, checklistCreateDto);
+            var checklistReadDto = _issuesStorage.CreateChecklist(issueId, checklistCreateDto);
 
-            return TypedResults.Created();
+            var uri = Url.Action(nameof(Get), new { id = checklistReadDto.Id });
+            var createChecklistResponse = new CreateChecklistResponse { Id = checklistReadDto.Id };
+            return TypedResults.Created(uri, createChecklistResponse);
         }
         catch (IssueNotFoundException)
         {

@@ -489,4 +489,36 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
         Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
     }
+
+    [Test]
+    public async Task DeleteChecklist_ShouldReturn_NoContent_AndDeleteRelatedChecklistItems()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createChecklistResponse = await TestKit.CreateChecklist(client, createIssueResponse.Id, "Checklist 1");
+        await TestKit.CreateChecklistItem(client, createChecklistResponse.Id, "Checklist item 1");
+        await TestKit.CreateChecklistItem(client, createChecklistResponse.Id, "Checklist item 2");
+        await TestKit.CreateChecklistItem(client, createChecklistResponse.Id, "Checklist item 3");
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        // Assume
+        var checklistsBefore = await TestKit.GetAllChecklists(client, createIssueResponse.Id);
+        Assert.That(checklistsBefore, Has.Length.EqualTo(1));
+        Assert.That(checklistsBefore[0].Items, Has.Length.EqualTo(3));
+
+        // Act
+        using var response = await client.DeleteAsync($"api/checklists/{createChecklistResponse.Id}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        var checklistsAfter = await TestKit.GetAllChecklists(client, createIssueResponse.Id);
+        Assert.That(checklistsAfter, Is.Empty);
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
+    }
 }

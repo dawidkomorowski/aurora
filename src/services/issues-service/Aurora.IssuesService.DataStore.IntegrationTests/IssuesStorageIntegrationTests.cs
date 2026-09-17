@@ -41,56 +41,6 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void CreateChecklistItem_ShouldCreateNewChecklistItem_GivenSpecifiedChecklist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var issueCreateDto = new IssueCreateDto
-        {
-            Title = "Issue for checklist tests",
-            Description = "This issue is used to test checklists feature.",
-            Status = "In Progress"
-        };
-        var issueBefore = issuesStorage.CreateIssue(issueCreateDto);
-
-        var checklistCreateDto = new ChecklistCreateDto
-        {
-            Title = "Checklist"
-        };
-        var checklist = issuesStorage.CreateChecklist(issueBefore.Id, checklistCreateDto);
-
-        var createDto = new ChecklistItemCreateDto
-        {
-            Content = "Checklist item",
-            IsChecked = true
-        };
-
-        var issueBeforeCreate = issuesStorage.GetIssue(issueBefore.Id);
-
-        // Assume
-        var checklistItemsBefore = issuesStorage.GetAllChecklistItems(checklist.Id);
-        Assert.That(checklistItemsBefore, Is.Empty);
-
-        // Act
-        var createdChecklistItem = issuesStorage.CreateChecklistItem(checklist.Id, createDto);
-
-        // Assert
-        Assert.That(createdChecklistItem.Id, Is.EqualTo(1));
-        Assert.That(createdChecklistItem.Content, Is.EqualTo(createDto.Content));
-        Assert.That(createdChecklistItem.IsChecked, Is.EqualTo(createDto.IsChecked));
-
-        var checklistItemsAfter = issuesStorage.GetAllChecklistItems(checklist.Id);
-        Assert.That(checklistItemsAfter, Has.Count.EqualTo(1));
-
-        var checklistItem = checklistItemsAfter.Single(ci => ci.Id == 1);
-        Assert.That(checklistItem, Is.EqualTo(createdChecklistItem));
-
-        var issueAfter = issuesStorage.GetIssue(issueBefore.Id);
-        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBeforeCreate.UpdatedDateTime));
-    }
-
-    [Test]
     public void CreateChecklistItem_ShouldCreateMultipleChecklistItemsForSpecifiedChecklist_WhenCalledMultipleTimes()
     {
         // Arrange

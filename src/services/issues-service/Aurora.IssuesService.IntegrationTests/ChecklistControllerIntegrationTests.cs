@@ -579,4 +579,57 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
         Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
     }
+
+    [Test]
+    public async Task CreateChecklistItem_ShouldCreateMultipleChecklistItems_GivenMultipleCreateRequests()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var createIssueResponse = await TestKit.CreateIssue(client, "Issue 1", "Description 1", null);
+        var createChecklistResponse = await TestKit.CreateChecklist(client, createIssueResponse.Id, "Checklist 1");
+        var issueBefore = await TestKit.GetIssue(client, createIssueResponse.Id);
+
+        // Assume
+        var checklistBefore = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistBefore.Items, Is.Empty);
+
+        // Act
+        var createChecklistItemRequest1 = new CreateChecklistItemRequest
+        {
+            Content = "Checklist Item 1"
+        };
+
+        using var content1 = TestKit.CreateJsonContent(createChecklistItemRequest1);
+        using var response1 = await client.PostAsync($"api/checklists/{createChecklistResponse.Id}/items", content1);
+
+        var createChecklistItemRequest2 = new CreateChecklistItemRequest
+        {
+            Content = "Checklist Item 2"
+        };
+
+        using var content2 = TestKit.CreateJsonContent(createChecklistItemRequest2);
+        using var response2 = await client.PostAsync($"api/checklists/{createChecklistResponse.Id}/items", content2);
+
+        // Assert
+        Assert.That(response1.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        Assert.That(response2.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+        var checklistAfter = await TestKit.GetChecklist(client, createChecklistResponse.Id);
+        Assert.That(checklistAfter.Items, Has.Length.EqualTo(2));
+
+        var checklistItem1 = checklistAfter.Items[0];
+        Assert.That(checklistItem1.Id, Is.EqualTo(1));
+        Assert.That(checklistItem1.Content, Is.EqualTo(createChecklistItemRequest1.Content));
+        Assert.That(checklistItem1.IsChecked, Is.False);
+
+        var checklistItem2 = checklistAfter.Items[1];
+        Assert.That(checklistItem2.Id, Is.EqualTo(2));
+        Assert.That(checklistItem2.Content, Is.EqualTo(createChecklistItemRequest2.Content));
+        Assert.That(checklistItem2.IsChecked, Is.False);
+
+        var issueAfter = await TestKit.GetIssue(client, createIssueResponse.Id);
+        Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
+        Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
+    }
 }

@@ -632,4 +632,24 @@ public sealed class ChecklistControllerIntegrationTests
         Assert.That(issueAfter.CreatedDateTime, Is.EqualTo(issueBefore.CreatedDateTime));
         Assert.That(issueAfter.UpdatedDateTime, Is.GreaterThan(issueBefore.UpdatedDateTime));
     }
+
+    [Test]
+    public async Task UpdateChecklistItem_ShouldReturn_NotFound_GivenChecklistItemIdThatDoesNotExist()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var updateChecklistItemRequest = new UpdateChecklistItemRequest
+        {
+            Content = "Checklist Item 1",
+            IsChecked = true
+        };
+
+        // Act
+        using var content = TestKit.CreateJsonContent(updateChecklistItemRequest);
+        using var response = await client.PutAsync("api/checklists/items/1", content);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
 }

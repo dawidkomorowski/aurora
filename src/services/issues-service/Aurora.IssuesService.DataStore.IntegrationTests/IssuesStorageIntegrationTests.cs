@@ -41,24 +41,6 @@ public class IssuesStorageIntegrationTests
     }
 
     [Test]
-    public void UpdateChecklistItem_ShouldThrowException_GivenChecklistItemThatDoesNotExist()
-    {
-        // Arrange
-        var issuesStorage = new IssuesStorage(_temporaryStorageFilePath, new NullLogger<IssuesStorage>());
-
-        var notExistentChecklistItemId = 123;
-        var updateDto = new ChecklistItemUpdateDto
-        {
-            Content = "Checklist item",
-            IsChecked = true
-        };
-
-        // Act
-        // Assert
-        Assert.That(() => issuesStorage.UpdateChecklistItem(notExistentChecklistItemId, updateDto), Throws.TypeOf<ChecklistItemNotFoundException>());
-    }
-
-    [Test]
     public void UpdateChecklistItem_ShouldUpdateExistingChecklistItem()
     {
         // Arrange
